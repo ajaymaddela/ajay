@@ -1,0 +1,27 @@
+ -------------------
+
+ kubeadm kubectl kubelet https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
+
+ after creating virtual machine
+
+ after installing docker and cri
+ after then installing kubeadm kubectl kubelet 
+ 
+ and adding nodes
+ then configuring cni
+
+
+
+
+kubectl is the command line 
+  for autocompletion in kubernetes use [https://kubernetes.io/docs/reference/kubectl/quick-reference/#kubectl-autocomplete]
+   
+   k8s create pods and container runs inside the pod 
+   in each pod one or many container
+
+     each pod gets an ip address
+     each container comunicate uses the local host
+      kubectl api-resources
+       kubectl api-resources |grep volume
+
+       

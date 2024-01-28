@@ -1,0 +1,16 @@
+---
+apiVersion: V1
+kind: Pod
+metadata:
+  name: ajay
+  label:
+    app: nginx
+    env: dev
+spec:
+  containers:
+    -name: nginx
+     image: nginx
+     resources:
+       limits:
+         cpu: 500m
+         memory: 512mi

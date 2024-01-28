@@ -1,0 +1,44 @@
+ 
+steps involved in creation of kubernetes cluster
+
+ create kubernetes cluster using docker container
+ -------------------
+   execute this commands in temp folder
+
+  install docker container using this link
+  refer:https://get.docker.com/
+
+  run on terminal
+  curl -fsSL https://get.docker.com -o install-docker.sh
+  sh install-docker.sh
+ sudo usermod -aG docker ubuntu 
+
+  install cri for docker or other container 
+   refer here https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.9/cri-dockerd_0.3.9.3-0.ubuntu-jammy_amd64.deb
+              sudo dpkg -i cri-dockerd_0.3.9.3-0.ubuntu-jammy_amd64.deb
+
+ after installing cri in vm then intall kubeadm , kubect,kubelet 
+
+  install kubeadm,kubeectl,kubelet refer here to install
+  refer:[https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/]
+
+  after installing kubeadm entering in root folder using [sudo -i]
+  then executing the command refer:https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
+
+  to continue as a user execute this command
+   mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+  to add nodes to the master node execute this commands
+  kubeadm join 172.31.21.151:6443 --token uiei66.ibdixnmka1dj6do9 \
+        --discovery-token-ca-cert-hash sha256:686d85a23ef071bd338eac409438c43eada59e2fc7f053e369d4e0b4ebed0503 
+        along this token add --cri-socket unix:///var/run/cri-dockerd.sock
+
+
+      after completing it kubectl get nodes then they are not ready 
+
+      install cni container network interface
+      refer here [https://kubernetes.io/docs/concepts/cluster-administration/addons/#networking-and-network-policy]
+
+      then the nodes get ready becomes running
