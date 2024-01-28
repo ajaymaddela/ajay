@@ -5,8 +5,6 @@ metadata:
   name: httpd-pod
 spec:
   containers:
-    - name: httpd
+    - name: dyingapache
       image: httpd:2.4
-      ports:
-        - containerPort: 80
-          protocol: "TCP"
+  

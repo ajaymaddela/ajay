@@ -1,0 +1,59 @@
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata: 
+  name: spec-re
+  labels: 
+    app: spec-re 
+    env: dev
+    version: v3.4.0
+spec:  
+  minReadySeconds: 3
+  replicas: 3
+  selector:
+    matchLabels:
+      app: spec-re
+      env: dev
+  template: 
+    metadata:
+      name: spec-re
+      labels: 
+        app: spec-re
+        env: dev
+    spec: 
+      containers:
+        - name: spec-re
+          image: shaikkhajaibrahim/spcjan2024:1.0 
+          resources: 
+            limits:
+              cpu: "50m"
+              memory: "50Mi"
+            requests:
+              cpu: "25m"
+              memory: "25Mi"
+
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: frontend
+  labels:
+    app: guestbook
+    tier: frontend
+spec:
+  # modify replicas according to your case
+  replicas: 3
+  selector:
+    matchLabels:
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        tier: frontend
+    spec:
+      containers:
+      - name: php-redis
+        image: shaikkhajaibrahim/spcjan2024:1.0 
+
+
+

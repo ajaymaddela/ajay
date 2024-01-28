@@ -1,16 +1,13 @@
 ---
-apiVersion: V1
+apiVersion: v1
 kind: Pod
 metadata:
-  name: ajay
-  label:
-    app: nginx
+  name: mysql
+  labels:
+    app: mysql
     env: dev
 spec:
   containers:
-    -name: nginx
-     image: nginx
-     resources:
-       limits:
-         cpu: 500m
-         memory: 512mi
+    - name: mysql 
+      image: mysql 8.0
+     
