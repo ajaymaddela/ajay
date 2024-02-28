@@ -1,0 +1,42 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workshopmanagementeventhandler
+  labels:
+    env: prod 
+    version: "1.0"
+      
+spec:
+  minReadySeconds: 5
+  replicas: 1
+  selector: 
+    matchLabels: 
+      env: prod 
+      version: "1.0"
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate: 
+      maxSurge: 1
+      maxUnavailable: 1
+  template: 
+    metadata:
+      name: workshopmanagementeventhandler
+      labels: 
+        env: prod
+        version: "1.0" 
+    spec: 
+      restartPolicy: Always
+      containers: 
+        - name: workshopmanagementeventhandler
+          image: pitstop/workshopmanagementeventhandler:1.0
+          resources: 
+            limits: 
+              cpu: "100m"
+              memory: "200Mi"
+          env: 
+            - name: DOTNETCORE_ENVIRONMENT
+              value: Production 
+
+
+

@@ -1,0 +1,10 @@
+---
+- name: install nginx
+  hosts: appserver
+  become: yes
+  tasks: 
+    - name: install nginx on ubuntu
+      ansible.builtin.apt:
+        name: nginx
+        update_cache: yes
+        state: present

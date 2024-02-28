@@ -1,0 +1,62 @@
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+  labels:
+    env: prod
+    version: "1.0"
+spec:
+  minReadySeconds: 5
+  replicas: 1
+  selector: 
+    matchLabels: 
+      env: prod 
+      version: "1.0"
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate: 
+      maxSurge: 1
+      maxUnavailable: 1
+  template: 
+    metadata:
+      name: webapp
+      labels: 
+        env: prod 
+        version: "1.0"
+    spec: 
+      restartPolicy: Always
+      containers: 
+        - name: webapp
+          image: pitstop/webapp:1.0
+          ports: 
+            - name: webapp
+              containerPort: 7005
+          resources: 
+            limits: 
+              cpu: "100m"
+              memory: "200Mi"
+          env: 
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp
+  labels: 
+    env: prod 
+    version: "1.0"
+spec: 
+  type: LoadBalancer
+  selector:
+    env: prod 
+    version: "1.0"
+  ports: 
+    - name: webapp
+      port: 7005
+      targetPort: 7005

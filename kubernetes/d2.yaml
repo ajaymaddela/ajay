@@ -1,0 +1,29 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nginx-ds
+  labels:
+    app: alpine
+spec:
+  minReadySeconds: 5
+  selector:
+    matchlabels:
+      app: alpine
+  template: 
+    metadata:
+      name: alpine
+      labels:
+        app: alpine
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: alpine-re
+          image: alpine
+          ports:
+            - name: alpine
+              containerPort: 80
+          args:
+            - sleep
+            - 30s
+       

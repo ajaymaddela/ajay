@@ -1,0 +1,64 @@
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apache
+spec: 
+  minReadySeconds: 5
+  replicas: 4
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate: 
+      maxSurge: 25%
+      maxUnavailable: 25%
+  selector: 
+    matchLabels:
+      app: apache
+  template: 
+    metadata:
+      name: apache
+      labels:
+        app: apache
+    spec:
+      containers:
+        - name: apache
+          image: httpd
+          ports: 
+            - name: apache
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+          readinessProbe: 
+            httpGet: 
+              path: /
+              port: 80
+          resources:
+            limits:
+              cpu: 500m
+              memory: 500Mi
+          volumeMounts:
+            - name: emp-vol
+              mountPath: /mnt
+      restartPolicy: Always
+      volumes: 
+        - name: emp-vol
+          emptyDir: 
+            sizeLimit: 500Mi
+
+
+---
+apiVersion: v1 
+kind: Service
+metadata:
+  name: apache-svc
+spec: 
+  type: ClusterIP
+  selector: 
+    app: apache
+  ports: 
+    - name: apache
+      port: 80
+      targetPort: 80

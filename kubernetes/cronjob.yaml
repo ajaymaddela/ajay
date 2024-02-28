@@ -1,0 +1,29 @@
+---
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: nginx-cj
+  labels:
+    app: nginx 
+spec: 
+  jobTemplate:
+    metadata:
+      name: nginx-re
+      labels:
+        app: nginx
+    spec: 
+      backoffLimit: 3
+      template: 
+        metadata: 
+          name: nginx-re
+          labels:
+            app: nginx
+        spec:
+          containers:
+            - name: nginx
+              image: nginx
+              ports:
+                - name: nginx
+                  containerPort: 80
+  schedule: 44 11 * * 2

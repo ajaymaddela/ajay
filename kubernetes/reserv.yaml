@@ -1,0 +1,50 @@
+---  
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata: 
+  name: nginx
+  labels: 
+    app: nginx
+    env: dev
+spec:  
+  minReadySeconds: 5
+  replicas: 3
+  selector: 
+    matchLabels:
+      app: nginx
+      env: dev
+  template:
+    metadata: 
+      name: nginx
+      labels: 
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - name: nginx-re
+              containerPort: 80
+          resources:
+            limits:
+              cpu: "50m"   
+              memory: "50Mi"
+
+
+---
+
+apiVersion: v1 
+kind: Service
+metadata:
+  name: ajay-svc
+  labels:
+    app: nginx
+    env: dev
+spec: 
+  type: NodePort
+  ports: 
+    - name: ngin-sc
+      nodePort: 31000
+      port: 80
+      targetPort: 80

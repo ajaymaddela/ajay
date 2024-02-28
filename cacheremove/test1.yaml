@@ -1,0 +1,12 @@
+FROM pitstop/workshopmanagementapi:1.0
+
+
+
+RUN rm -rf /var/cache/apk/*
+
+COPY . /app
+# Clean up unnecessary files
+RUN rm -rf /app/temp
+
+
+~                                                                                                                                    ~        

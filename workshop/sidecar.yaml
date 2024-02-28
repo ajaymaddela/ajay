@@ -1,0 +1,152 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rabbitmq
+  labels: 
+    env: prod 
+spec:
+  minReadySeconds: 5
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate 
+    rollingUpdate: 
+      maxUnavailable: 10%
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      env: prod 
+  serviceName: rabbitmq-svc
+  template: 
+    metadata:
+      name: rabbitmq
+      labels:
+        env: prod 
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:3-management-alpine
+          ports:
+            - name: rabbit1
+              containerPort: 5672
+        - name: vehiclemanagementapi
+          image: pitstop/vehiclemanagementapi:1.0
+          ports: 
+            - name: vehicle1
+              containerPort: 5000
+        - name: customermanagementapi
+          image: pitstop/customermanagementapi:1.0
+          ports: 
+            - name: customer1
+              containerPort: 5100
+        - name: workshopmanagementapi
+          image: pitstop/workshopmanagementapi:1.0
+          ports: 
+            - name: work1
+              containerPort: 5200
+        - name: auditlogservice
+          image: pitstop/auditlogservice:1.0
+        - name: invoiceservice
+          image: pitstop/invoiceservice:1.0
+        - name: notificationservice
+          image: pitstop/notificationservice:1.0
+          volumeMounts:
+            - mountPath: /var/lib/rabbitmq
+              name: cus-vol
+            - name: rabbitmq-config
+              mountPath: /etc/pitstop
+          env: 
+            - name: RABBITMQ_CONFIG_FILE 
+              value: /etc/pitstop/rabbitmq.conf
+      volumes:
+        - name: cus-vol 
+          emptyDir:
+            medium: ""
+            sizeLimit: 500Mi
+        - name: rabbitmq-config
+          hostPath:
+            path: /path/to/your/local/rabbitmq
+
+---
+apiVersion: v1 
+kind: Service
+metadata:
+  name: rabbitmq-svc
+spec: 
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    env: prod 
+  ports: 
+    - name: rabbitmq
+      port: 5672
+      targetPort: 5672
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql 
+  labels: 
+    env: prod 
+spec:
+  minReadySeconds: 5
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate 
+    rollingUpdate: 
+      maxUnavailable: 10%
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      env: prod 
+  serviceName: mysql-svc
+  template: 
+    metadata:
+      name: mysql 
+      labels:
+        env: prod 
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: mysql 
+          image: mysql:8.3.0
+          ports:
+            - name: mysql
+              containerPort: 3306
+          volumeMounts:
+            - mountPath: /var/lib/mysql 
+              name: sql-vol 
+          env: 
+            - name: MYSQL_ROOT_PASSWORD
+              value: admin123
+            - name: MYSQL_DATABASE
+              value: example
+            - name: MYSQL_USER
+              value: ajay
+            - name: MYSQL_PASSWORD
+              value: ajay123
+              
+      volumes:
+        - name: sql-vol 
+          emptyDir:
+            medium: ""
+            sizeLimit: 5000Mi
+
+
+---
+---
+apiVersion: v1 
+kind: Service
+metadata:
+  name: mysql-svc
+spec: 
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    env: prod 
+  ports: 
+    - name: mysql
+      port: 3306
+      targetPort: 3306

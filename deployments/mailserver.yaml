@@ -1,0 +1,62 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mailserver
+  labels:
+    env: prod 
+    version: "1.0"
+spec:
+  minReadySeconds: 5
+  replicas: 1
+  selector: 
+    matchLabels: 
+      env: prod 
+      version: "1.0"
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate: 
+      maxSurge: 1
+      maxUnavailable: 1
+  template: 
+    metadata:
+      name: mailserver
+      labels: 
+        env: prod 
+        version: "1.0"
+    spec: 
+      restartPolicy: Always
+      containers: 
+        - name: mail1 
+          image: maildev/maildev:1.1.0
+          resources: 
+            limits: 
+              cpu: "100m"
+              memory: "200Mi"
+          ports: 
+            - name: mail1 
+              containerPort: 25
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mailserver
+  labels: 
+    env: prod 
+    version: "1.0"
+spec: 
+  type: NodePort
+  selector:
+    env: prod 
+    version: "1.0"
+  ports: 
+    - name: mail-svc 
+      port: 25
+      targetPort: 25
+      nodePort: 30005
+    - name: mail
+      port: 4000
+      targetPort: 80

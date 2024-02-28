@@ -1,0 +1,61 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workshopmanagementapi
+  labels:
+    env: prod 
+    version: "1.0"
+spec:
+  minReadySeconds: 5
+  replicas: 1
+  selector: 
+    matchLabels: 
+      env: prod 
+      version: "1.0"
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate: 
+      maxSurge: 1
+      maxUnavailable: 1
+  template: 
+    metadata:
+      name: workshopmanagementapi
+      labels: 
+        env: prod 
+        version: "1.0"
+    spec: 
+      restartPolicy: Always
+      containers: 
+        - name: workshopmanagementapi
+          image: pitstop/workshopmanagementapi:1.0
+          ports: 
+            - name: work1 
+              containerPort: 5200
+          resources: 
+            limits: 
+              cpu: "100m"
+              memory: "200Mi"
+          env: 
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: workshopmanagementapi
+  labels: 
+    env: prod
+    version: "1.0"
+spec: 
+  type: NodePort
+  selector:
+    env: prod 
+    version: "1.0"
+  ports: 
+    - name: work-svc 
+      port: 5200
+      targetPort: 5200
+      nodePort: 30009

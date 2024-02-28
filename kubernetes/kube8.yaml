@@ -1,0 +1,43 @@
+---
+
+apiVersion: v1 
+kind: Pod 
+metadata: 
+  name: nginx
+spec:
+  restartPolicy: OnFailure
+  initContainers:
+    - name: init1
+      image: alpine
+      args:
+        - sleep
+        - 10s
+    - name: init2
+      image: alpine
+      args:
+        - sleep
+        - 10s  
+    - name: init3
+      image: alpine
+      args:
+        - sleep
+        - 10s
+  Containers:
+    - name: nginx
+      image: nginx
+      ports: 
+        - name: nginx-re
+          containerPort: 80
+      resources:
+        limits:
+          cpu: "50m"
+          memory: "50Mi"
+    - name: sidecar1
+      image: alpine
+      args:
+        - sleep
+        - 1d
+      resources:
+        limits:
+          cpu: "10m"
+          memory: "10Mi"      

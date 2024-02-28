@@ -1,0 +1,11 @@
+---
+apiVersion: v1 
+kind: ConfigMap 
+metadata:
+  name: sql-config
+  labels: 
+    env: prod 
+data: 
+  ACCEPT_EULA: "Y" 
+  MSSQL_PID: Developer
+  SA_PASSWORD: 8jkGh47hnDw89Haq8LN2

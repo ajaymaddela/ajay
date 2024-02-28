@@ -1,0 +1,43 @@
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apache-re
+  labels:
+    name: apache-re
+    app: apache
+spec:
+  minReadySeconds: 5
+  progressDeadlineSeconds: 600
+  replicas: 3
+  selector:
+    matchLabels:
+      app: apache
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template: 
+    metadata:
+      name: apache-re
+      labels: 
+        name: apache-re
+        app: apache
+    spec:  
+      restartPolicy: Always
+      containers:
+        - name: apache
+          image: httpd:2.4
+          ports:
+            - name: apache
+              containerPort: 80
+        - name: alpine
+          image: alpine:3.19
+          ports:
+            - name: alpine
+              containerPort: 8080 
+          args:
+            - sleep
+            - 1d

@@ -1,0 +1,36 @@
+---
+
+#firstly we have to login in to vm using pem key which is downloaded while creating vm 
+  ! select the path of downloads while using ssh login
+  ! give name of the pem like ajay.pem while logging 
+  ! #ssh -i ajay-pem dell@username
+  !after log into vm 
+  ! then copy the pem file into vm using sftp command 
+  !  #sftp -i ajay-pem dell@username
+  ! then use put command 
+  ! after create vi hosts file and add privateip of the node(mean other vm)
+  ! then to see the connectivity b/w them by using
+  ! #ansible -i hosts -m ping all
+  ! 
+
+
+  while creating user in linux machine 
+  ! we have to check the password authenictaion should be yes
+  !  #sudo adduser ajay
+  ! give password
+  ! inorder give the user admin access
+  !  #sudo visudo
+  ! change where the members of group of
+  ! below of sudo all:all:all:all
+  ! %sudo   ALL=(ALL:ALL) ALL
+  !  ajay    ALL=(ALL:ALL) NOPASSWD:ALL
+  ! then generate key pair using
+  ! ssh-keygen
+  ! copy publickey using
+  !  ## ssh-copy-id ajay@privateip
+  !then create a folder using mkdir playbook
+  then enter into folder create  # vi hosts and add privateip of the node
+  then create # vi playbook.yaml
+  in playbook.yaml we write the plays and tasks i.e, that is what we want
+  like utilities,update,packages etc 
+  

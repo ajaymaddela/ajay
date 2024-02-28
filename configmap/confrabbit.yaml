@@ -1,0 +1,9 @@
+---
+apiVersion: v1 
+kind: ConfigMap 
+metadata:
+  name: rabbit-config
+  labels: 
+    env: prod 
+data: 
+  RABBITMQ_CONFIG_FILE: /etc/pitstop/rabbitmq.conf

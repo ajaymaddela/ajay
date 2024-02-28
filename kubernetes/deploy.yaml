@@ -1,0 +1,53 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  labels:
+    app: dev
+spec:
+  minReadySeconds: 5
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dev
+  template:
+    metadata:
+      name: nginx
+      app: dev
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports: 
+            - name: nginx
+              containerPort: 80 
+          resources: 
+            limits: 
+              cpu: "50m"
+              memory: "50Mi"
+          livenessProbe: 
+            httpGet:
+              path: /home/dell/nginx
+              port: 80
+          readinessProbe: 
+            httpGet:
+              path: /home/dell/nginx
+              port: 80
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: ajay-svc
+  labels: 
+    app: dev
+spec: 
+  selector:
+    app: dev
+  ports: 
+    - name: nginx-re
+      port: 80
+      targetPort: 80

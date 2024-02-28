@@ -1,0 +1,50 @@
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: busy1
+  labels:
+    app: busy
+spec:
+  minReadySeconds: 5
+  replicas: 2
+  selector:
+    matchLabels: 
+      app: busy
+  updateStrategy: 
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 10%
+  volumeClaimTemplates:
+    - metadata:
+        name: emp
+      spec:
+        accessModes: ReadWriteOnce
+        resources:
+          requests:
+            storage: 4Gi
+        selector:
+          matchLabels: 
+            app: busy
+        storageClassName: managed-csi
+  template: 
+    metadata:
+      name: busy1
+      labels: 
+        app: busy
+    spec:
+      containers: 
+        - name: busy2
+          image: busybox:1.35
+          ports:
+            - name: busy3 
+              containerPort: 80
+          volumeMounts:
+            - name: emp-vol 
+              mountPath: /var/lib
+      volumes: 
+        - name: emp-vol
+          persistentVolumeClaim:
+            claimName: emp 
+            readOnly: false

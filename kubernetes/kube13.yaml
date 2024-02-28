@@ -1,0 +1,27 @@
+---
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: dev-cj
+spec: 
+  jobTemplate:
+    metadata:
+      name: dev-cj
+    spec:
+      activeDeadlineSeconds: 600
+      backoffLimit: 3
+      selector:
+        matchlabels:
+          app: dev 
+      template:
+        metadata: 
+          name: dev-cj
+        spec: 
+          restartPolicy: Always
+          containers:
+            - name: dev-ctr
+              image: nginx
+              ports:
+                - name: dev-ctr
+                  containerPort: 80  

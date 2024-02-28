@@ -1,0 +1,28 @@
+---
+
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nginx-ds
+  labels:
+    app: nginx
+spec: 
+  minReadySeconds: 5
+  selector:
+    matchLabels:
+      name: nginx-ds
+      app: nginx-ds
+  template: 
+    metadata:
+      name: nginx
+      labels:
+        app: nginx
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: nginx-re
+          image: nginx
+          ports:
+            - name: nginx-re
+              containerPort: 80
+  

@@ -1,0 +1,136 @@
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: 
+  name: nopcommerce
+  labels:
+    app: nop 
+spec:
+  minReadySeconds: 5
+  replicas: 4
+  selector:
+    matchLabels: 
+      app: nop 
+  serviceName: mysql-svc
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate: 
+      maxUnavailable: 25%
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-vol1
+        labels: 
+          app: nop 
+      spec:
+        accessModes:
+          - ReadWriteMany
+        resources:
+          requests:
+            storage: 1Gi
+        selector:
+          matchLabels:
+            app: nop 
+        storageClassName: managed-csi
+  template: 
+    metadata:
+      name: nopcommerce
+      labels: 
+        app: nop 
+    spec: 
+      restartPolicy: OnFailure
+      volumes: 
+        - name: mysql-vol
+          persistentVolumeClaim:
+            claimName: mysql-vol1 
+            readOnly: false
+      nodeSelector: 
+        env: dev
+      containers:
+        - name: mysql-ctr
+          image: mysql:8.0-debian
+          env: 
+            - name: MYSQL_ROOT_PASSWORD
+              value: admin123
+            - name: MYSQL_DATABASE
+              value: example
+            - name: MYSQL_USER
+              value: ajay
+            - name: MYSQL_PASSWORD
+              value: ajay123
+          ports:
+            - name: mysql
+              containerPort: 80
+          resources:
+            limits:
+              cpu: 500m
+              memory: 128Mi
+          volumeMounts:
+            - name: mysql-vol
+              mountPath: /var/lib
+
+
+---
+apiVersion: v1 
+kind: Service
+metadata:
+  name: mysql-svc
+spec:
+  selector:
+    app: nop 
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: 3306
+
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: nopcommerce
+spec:
+  minReadySeconds: 5
+  replicas: 4
+  selector:
+    matchLabels:
+      app: nop 
+      ver: "v1.0"
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate: 
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template: 
+    metadata:
+      name: nopcommerce
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: nop-ctr
+          image: nopcommerceteam/nopcommerce:4.50
+          ports: 
+            - name: nop1
+              containerPort: 80
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+              
+
+
+--- 
+apiVersion: v1 
+kind: Service
+metadata:
+  name: nop-svc
+spec:
+  type: NodePort
+  selector:
+    app: nop 
+  ports:
+    - name: nop
+      nodePort: 5000
+      port: 80
+      targetPort: 80

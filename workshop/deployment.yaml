@@ -1,0 +1,586 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mailserver
+  labels:
+    env: prod 
+spec:
+  minReadySeconds: 5
+  replicas: 1
+  selector: 
+    matchLabels: 
+      env: prod 
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate: 
+      maxSurge: 1
+      maxUnavailable: 1
+  template: 
+    metadata:
+      name: mailserver
+      labels: 
+        env: prod 
+    spec: 
+      restartPolicy: Always
+      containers: 
+        - name: mail1 
+          image: maildev/maildev:1.1.0
+          resources: 
+            limits: 
+              cpu: "100m"
+              memory: "200Mi"
+          ports: 
+            - name: mail1 
+              containerPort: 25
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mailserver
+  labels: 
+    env: prod 
+spec: 
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    env: prod 
+  ports: 
+    - name: mail-svc 
+      port: 25
+      targetPort: 25
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logserver
+  labels:
+    env: prod 
+spec:
+  minReadySeconds: 5
+  replicas: 1
+  selector: 
+    matchLabels: 
+      env: prod 
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate: 
+      maxSurge: 1
+      maxUnavailable: 1
+  template: 
+    metadata:
+      name: logserver
+      labels: 
+        env: prod 
+    spec: 
+      restartPolicy: Always
+      containers: 
+        - name: log1  
+          image: datalust/seq:latest
+          ports: 
+            - name: log1 
+              containerPort: 5341
+          resources: 
+            limits: 
+              cpu: "100m"
+              memory: "200Mi"
+          env: 
+            - name: ACCEPT_EULA
+              value: "Y"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: logserver
+  labels: 
+    env: prod
+spec: 
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    env: prod 
+  ports: 
+    - name: log-svc 
+      port: 5341
+      targetPort: 5341
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vehiclemanagementapi
+  labels:
+    env: prod 
+  annotations: 
+    config.kubernetes.io/depends-on: 
+      -/apps/env/prod/StatefulSet/rabbitmq
+      -/apps/env/prod/StatefulSet/sqlserver
+  
+spec:
+  minReadySeconds: 5
+  replicas: 1
+  selector: 
+    matchLabels: 
+      env: prod 
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate: 
+      maxSurge: 1
+      maxUnavailable: 1
+  template: 
+    metadata:
+      name: vehiclemanagementapi
+      labels: 
+        env: prod 
+    spec: 
+      restartPolicy: Always
+      containers: 
+        - name: vehiclemanagementapi
+          image: pitstop/vehiclemanagementapi:1.0
+          ports: 
+            - name: vehicle1
+              containerPort: 5000
+            - name: istio
+              image: istio/pilot:1.21.0-rc.0-debug
+          resources: 
+            limits: 
+              cpu: "100m"
+              memory: "200Mi"
+          env: 
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: vehiclemanagementapi
+  labels: 
+    env: prod 
+spec: 
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    env: prod 
+  ports: 
+    - name: vehicle-svc 
+      port: 5000
+      targetPort: 5000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customermanagementapi
+  labels:
+    env: prod 
+  annotations: 
+    config.kubernetes.io/depends-on: 
+      -/apps/env/prod/StatefulSet/rabbitmq
+      -/apps/env/prod/StatefulSet/sqlserver
+spec:
+  minReadySeconds: 5
+  replicas: 1
+  selector: 
+    matchLabels: 
+      env: prod 
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate: 
+      maxSurge: 1
+      maxUnavailable: 1
+  template: 
+    metadata:
+      name: customermanagementapi
+      labels: 
+        env: prod 
+    spec: 
+      restartPolicy: Always
+      containers: 
+        - name: customermanagementapi
+          image: pitstop/customermanagementapi:1.0
+          ports: 
+            - name: customer1
+              containerPort: 5100
+            - name: istio
+              image: istio/pilot:1.21.0-rc.0-debug
+          resources: 
+            limits: 
+              cpu: "100m"
+              memory: "200Mi"
+          env: 
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: customermanagementapi
+  labels: 
+    env: prod 
+spec: 
+  type: ClusterIP
+  clusterIP: None 
+  selector:
+    env: prod 
+  ports: 
+    - name: cust-svc 
+      port: 5100
+      targetPort: 5100
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workshopmanagementapi
+  labels:
+    env: prod 
+  annotations: 
+    config.kubernetes.io/depends-on: 
+      -/apps/env/prod/StatefulSet/rabbitmq
+      -/apps/env/prod/StatefulSet/sqlserver
+spec:
+  minReadySeconds: 5
+  replicas: 1
+  selector: 
+    matchLabels: 
+      env: prod 
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate: 
+      maxSurge: 1
+      maxUnavailable: 1
+  template: 
+    metadata:
+      name: workshopmanagementapi
+      labels: 
+        env: prod 
+    spec: 
+      restartPolicy: Always
+      containers: 
+        - name: workshopmanagementapi
+          image: pitstop/workshopmanagementapi:1.0
+        - name: istio
+          image: istio/pilot:1.21.0-rc.0-debug
+          ports: 
+            - name: work1 
+              containerPort: 5200
+          resources: 
+            limits: 
+              cpu: "100m"
+              memory: "200Mi"
+          env: 
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: workshopmanagementapi
+  labels: 
+    env: prod
+spec: 
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    env: prod 
+  ports: 
+    - name: work-svc 
+      port: 5200
+      targetPort: 5200
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auditlogservice
+  labels:
+    env: prod 
+  annotations: 
+    config.kubernetes.io/depends-on: 
+      -/apps/env/prod/StatefulSet/rabbitmq
+spec:
+  minReadySeconds: 5
+  replicas: 1
+  selector: 
+    matchLabels: 
+      env: prod 
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate: 
+      maxSurge: 1
+      maxUnavailable: 1
+  template: 
+    metadata:
+      name: auditlogservice
+      labels: 
+        env: prod 
+    spec: 
+      restartPolicy: Always
+      containers: 
+        - name: auditlogservice
+          image: pitstop/auditlogservice:1.0
+        - name: istio
+          image: istio/pilot:1.21.0-rc.0-debug
+          resources: 
+            limits: 
+              cpu: "100m"
+              memory: "200Mi"
+          env: 
+            - name: DOTNET_ENVIRONMENT
+              value: Production
+
+          
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: invoiceservice
+  labels:
+    env: prod 
+  annotations: 
+    config.kubernetes.io/depends-on: 
+      -/apps/env/prod/StatefulSet/rabbitmq
+      -/apps/env/prod/StatefulSet/sqlserver
+      -/apps/env/prod/Deployment/mailserver
+spec:
+  minReadySeconds: 5
+  replicas: 1
+  selector: 
+    matchLabels: 
+      env: prod 
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate: 
+      maxSurge: 1
+      maxUnavailable: 1
+  template: 
+    metadata:
+      name: invoiceservice
+      labels: 
+        env: prod 
+    spec: 
+      restartPolicy: Always
+      containers: 
+        - name: invoiceservice
+          image: pitstop/invoiceservice:1.0
+        - name: istio
+          image: istio/pilot:1.21.0-rc.0-debug
+          resources: 
+            limits: 
+              cpu: "100m"
+              memory: "200Mi"
+          env: 
+            - name: DOTNETCORE_ENVIRONMENT
+              value: Production   
+
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notificationservice
+  labels:
+    env: prod 
+  annotations: 
+    config.kubernetes.io/depends-on: 
+      -/apps/env/prod/StatefulSet/rabbitmq
+      -/apps/env/prod/StatefulSet/sqlserver
+      -/apps/env/prod/Deployment/mailserver
+spec:
+  minReadySeconds: 5
+  replicas: 1
+  selector: 
+    matchLabels: 
+      env: prod 
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate: 
+      maxSurge: 1
+      maxUnavailable: 1
+  template: 
+    metadata:
+      name: notificationservice
+      labels:
+        env: prod 
+    spec: 
+      restartPolicy: Always
+      containers: 
+        - name: notificationservice
+          image: pitstop/notificationservice:1.0
+        - name: istio
+          image: istio/pilot:1.21.0-rc.0-debug
+          resources: 
+            limits: 
+              cpu: "100m"
+              memory: "200Mi"
+          env: 
+            - name: DOTNETCORE_ENVIRONMENT
+              value: Production
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: timeservice
+  labels:
+    env: prod 
+  annotations: 
+    config.kubernetes.io/depends-on: 
+      -/apps/env/prod/StatefulSet/rabbitmq
+      
+spec:
+  minReadySeconds: 5
+  replicas: 1
+  selector: 
+    matchLabels: 
+      env: prod 
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate: 
+      maxSurge: 1
+      maxUnavailable: 1
+  template: 
+    metadata:
+      name: timeservice
+      labels:
+        env: prod 
+    spec: 
+      restartPolicy: Always
+      containers: 
+        - name: timeservice
+          image: pitstop/timeservice:1.0
+        - name: istio
+          image: istio/pilot:1.21.0-rc.0-debug
+          resources: 
+            limits: 
+              cpu: "100m"
+              memory: "200Mi"
+          env: 
+            - name: DOTNETCORE_ENVIRONMENT
+              value: Production  
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workshopmanagementeventhandler
+  labels:
+    env: prod 
+  annotations: 
+    config.kubernetes.io/depends-on: 
+      -/apps/env/prod/StatefulSet/rabbitmq
+      -/apps/env/prod/StatefulSet/sqlserver
+      
+spec:
+  minReadySeconds: 5
+  replicas: 1
+  selector: 
+    matchLabels: 
+      env: prod 
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate: 
+      maxSurge: 1
+      maxUnavailable: 1
+  template: 
+    metadata:
+      name: workshopmanagementeventhandler
+      labels: 
+        env: prod 
+    spec: 
+      restartPolicy: Always
+      containers: 
+        - name: workshopmanagementeventhandler
+          image: pitstop/workshopmanagementeventhandler:1.0
+        - name: istio
+          image: istio/pilot:1.21.0-rc.0-debug
+          resources: 
+            limits: 
+              cpu: "100m"
+              memory: "200Mi"
+          env: 
+            - name: DOTNETCORE_ENVIRONMENT
+              value: Production 
+
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+  labels:
+    env: prod
+  annotations: 
+    config.kubernetes.io/depends-on: 
+      -/apps/env/prod/Deployment/customermanagamentapi
+      -/apps/env/prod/Deployment/vehiclemanagementapi
+      -/apps/env/prod/Deployment/workshopmanagementapi 
+spec:
+  minReadySeconds: 5
+  replicas: 1
+  selector: 
+    matchLabels: 
+      env: prod 
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate: 
+      maxSurge: 1
+      maxUnavailable: 1
+  template: 
+    metadata:
+      name: webapp
+      labels: 
+        env: prod 
+    spec: 
+      restartPolicy: Always
+      containers: 
+        - name: webapp
+          image: pitstop/webapp:1.0
+        - name: istio
+          image: istio/pilot:1.21.0-rc.0-debug
+          ports: 
+            - name: webapp
+              containerPort: 7005
+          resources: 
+            limits: 
+              cpu: "100m"
+              memory: "200Mi"
+          env: 
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp
+  labels: 
+    env: prod 
+spec: 
+  type: NodePort
+  selector:
+    env: prod 
+  ports: 
+    - name: webapp
+      port: 7005
+      targetPort: 7005
+      nodePort: 30002

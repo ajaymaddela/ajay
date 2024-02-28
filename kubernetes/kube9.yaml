@@ -1,0 +1,26 @@
+---
+    
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins-re
+spec: 
+  minReadySeconds: 5
+  replicas: 10
+  selector:
+    matchLabels:
+      app: jenkins
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 40%
+      maxUnavailable: 40%
+  template:
+    metadata:
+      name: jenkins
+      labels: 
+      app: jenkins
+    spec:
+      Containers:
+        - name: jenkins
+          images: jenkins/jenkins:jdk11
