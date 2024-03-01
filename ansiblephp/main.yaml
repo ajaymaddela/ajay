@@ -22,7 +22,7 @@
         - restart apache2
     - name: copy info.php
       ansible.builtin.copy:
-        src: info.php
+        src: /ansiblephp/info.php
         dest: /var/www/html/info.php
   handlers:
     - name: enable and start apache2
