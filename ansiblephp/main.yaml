@@ -3,6 +3,10 @@
   hosts: webserver
   become: yes
   tasks: 
+    - name: fail for unsupported os
+      ansible.builtin.fail:
+        msg: "This playbook is designed only for Ubuntu os"
+      when: ansible_facts['distribution'] != 'Ubuntu'
     - name: install apache2 on ubuntu
       ansible.builtin.apt:
         name: "{{package}}"
@@ -14,6 +18,8 @@
       ansible.builtin.apt:
         name: "{{ php_packages }}"
         state: present 
+      notify:
+        - restart apache2
     - name: copy info.php
       ansible.builtin.copy:
         src: info.php
