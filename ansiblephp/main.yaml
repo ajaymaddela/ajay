@@ -2,6 +2,12 @@
 - name: install apache2
   hosts: webserver
   become: yes
+  vars:
+    packages:
+      - apache2
+    php_packages:
+      - php
+      - php-mysql 
   tasks: 
     - name: fail for unsupported os family
       ansible.builtin.fail:
@@ -22,8 +28,10 @@
         - restart apache2
     - name: copy info.php
       ansible.builtin.copy:
-        src: /ansiblephp/info.php
+        src: info.php
         dest: /var/www/html/info.php
+      notify:
+        - restart apache2  
   handlers:
     - name: enable and start apache2
       service:
