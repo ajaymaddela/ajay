@@ -1,0 +1,4 @@
+sudo dnf install httpd
+sudo systemctl start httpd
+sudo dnf install php php-mysqlnd
+sudo systemctl restart httpd
