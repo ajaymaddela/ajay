@@ -28,4 +28,6 @@
     - name: check the file exists
       ansible.builtin.stat:
         path: /tmp/apache-tomcat-10.0.10.tar.gz
-        
+    - name: debug variables
+      ansible.builtin.debug:
+        msg: print the necessary variables
