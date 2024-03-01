@@ -1,5 +1,5 @@
 ---
-package: apache2
+packages: apache2
 php_packages:
   - php 
   - libapache2-mod-php 
