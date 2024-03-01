@@ -1,0 +1,9 @@
+   ###sudo apt update
+#sudo apt install apache2 -y
+#sudo systemctl enable apache2
+#sudo systemctl start apache2
+#sudo apt install php libapache2-mod-php php-mysql
+#sudo systemctl restart apache2
+
+# create a file in /var/www/html/info.php with content <?php phpinfo(); ?>
+#sudo systemctl restart apache2
