@@ -1,0 +1,11 @@
+---
+- name: install utilities
+  hosts: all
+  become: yes
+  tasks:
+    - name: install utilities
+      ansible.builtin.apt:
+        name: git
+        update_cache: yes
+        state: present 
+    

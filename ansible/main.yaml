@@ -3,6 +3,11 @@
   hosts: appserver
   become: yes
   tasks: 
+    - name: fail for unsupported os families
+      ansible.builtin.fail:
+        msg: this is designed for redhat and ubuntu
+      when: ansible_facts['os_family'] != 'Debian' and ansible_facts['os_family'] != 'Redhat' 
+    
     - name: install nginx on ubuntu
       ansible.builtin.apt:
         name: nginx
