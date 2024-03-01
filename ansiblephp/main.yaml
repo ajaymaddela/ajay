@@ -1,9 +1,9 @@
 ---
 - name: install apache2
-  hosts: localhost
+  hosts: webserver
   become: yes
   tasks: 
-    - name: install apache on ubuntu
+    - name: install apache2 on ubuntu
       ansible.builtin.apt:
         name: "{{package}}"
         update_cache: yes
