@@ -2,12 +2,6 @@
 - name: install apache2
   hosts: webserver
   become: yes
-  vars:
-    packages:
-      - apache2
-    php_packages:
-      - php
-      - php-mysql 
   tasks: 
     - name: fail for unsupported os family
       ansible.builtin.fail:
