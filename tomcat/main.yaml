@@ -1,0 +1,31 @@
+---
+- name: install tomcat on ubuntu
+  hosts: appserver
+  become: yes
+  tasks: 
+    - name: fail for unsupported os 
+      ansible.builtin.fail:
+        msg: 'this works only on ubuntu os'
+      when: ansible_facts['distribution'] != "Ubuntu"
+    - name: update and install tomcat
+      ansible.builtin.apt:
+        name: "{{ package }}"
+        update_cache: yes
+        state: present 
+    - name: create tomcat user
+      ansible.builtin.user:
+        name: "{{ user }}" 
+        create_home: true
+        group: "{{ group }}"
+        home: "{{ home_dir }}"
+        shell: "{{ user_shell }}"
+        system: true
+        state: present   
+    - name: download tomcat tar 
+      ansible.builtin.get_url:
+        url: "{{ tomcat_url }}"
+        dest: /tmp/apache-tomcat-10.0.10.tar.gz
+    - name: check the file exists
+      ansible.builtin.stat:
+        path: /tmp/apache-tomcat-10.0.10.tar.gz
+        
