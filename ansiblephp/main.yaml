@@ -6,7 +6,7 @@
     - name: fail for unsupported os
       ansible.builtin.fail:
         msg: "This playbook is designed only for Ubuntu os"
-      when: ansible_facts['os_distribution'] != 'Ubuntu'
+      when: ansible_facts['distribution'] != 'Ubuntu'
     - name: install apache2 on ubuntu
       ansible.builtin.apt:
         name: "{{package}}"
