@@ -5,17 +5,17 @@
   tasks: 
     - name: fail for unsupported os family
       ansible.builtin.fail:
-        msg: "This playbook is designed only for Centos os"
+        msg: "This playbook is designed only for Centos OS"
       when: ansible_facts['distribution'] != 'Centos'
     - name: install apache2 on ubuntu
-      ansible.builtin.dnf:
+      ansible.builtin.yum:
         name: "{{ package }}"
         update_cache: yes
         state: present
       notify: 
         - enable and start apache2
     - name: install php packages
-      ansible.builtin.dnf:
+      ansible.builtin.yum:
         name: "{{ php_packages }}"
         state: present 
       notify:
