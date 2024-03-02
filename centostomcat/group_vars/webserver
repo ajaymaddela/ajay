@@ -1,5 +1,5 @@
 ---
-package: java-1.8.0-openjdk-headless
+package: openjdk-11-jdk
 user: tomcat
 group: tomcat
 home_dir: /opt/tomcat
