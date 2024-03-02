@@ -1,6 +1,6 @@
 ---
 - name: install tomcat on centos
-  hosts: appserver
+  hosts: webserver
   become: yes
   tasks: 
     - name: fail for unsupported os 
