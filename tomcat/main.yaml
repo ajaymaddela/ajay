@@ -22,12 +22,27 @@
         system: true
         state: present   
     - name: download tomcat tar 
-      ansible.builtin.get_url:
-        url: "{{ tomcat_url }}"
-        dest: /tmp/apache-tomcat-10.0.10.tar.gz
+      ansible.builtin.unarchive:
+        src: "{{ tomcat_url }}"
+        dest: "{{ home_dir }}"
+        owner: "{{ user }}"
+        remote_src: yes
+      become: yes
     - name: check the file exists
       ansible.builtin.stat:
         path: /tmp/apache-tomcat-10.0.10.tar.gz
     - name: debug variables
       ansible.builtin.debug:
         msg: print the necessary variables
+    - name: find all the shell files
+      find:
+        paths: "/opt/tomcat/apache-tomcat-10.0.10/bin"
+        patterns: '*.sh'
+      register: shell_files
+    - name: change permissions to execute
+      file:
+        path: "{{ item.path }}"
+        owner: "{{ user }}"
+        group: "{{ group }}"
+        mode: "755"
+      loop: "{{ shell_files.files }}"
