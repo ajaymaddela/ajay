@@ -1,0 +1,42 @@
+- name: Install Apache2
+  hosts: webserver
+  become: yes
+  tasks:
+    - name: Fail for unsupported OS family
+      ansible.builtin.fail:
+        msg: "This playbook is designed only for CentOS OS"
+      when: ansible_facts['distribution'] != 'CentOS'
+
+    - name: Install Apache2 on CentOS
+      ansible.builtin.yum:
+        name: httpd
+        update_cache: yes
+        state: present
+      notify:
+        - Enable and start Apache2
+
+    - name: Install PHP packages
+      ansible.builtin.yum:
+        name: "{{ php_packages }}"
+        state: present
+      notify:
+        - Restart Apache2
+
+    - name: Copy info.php
+      ansible.builtin.copy:
+        src: info.php
+        dest: /var/www/html/info.php
+      notify:
+        - Restart Apache2
+
+  handlers:
+    - name: Enable and start Apache2
+      ansible.builtin.service:
+        name: httpd
+        enabled: yes
+        state: started
+
+    - name: Restart Apache2
+      ansible.builtin.service:
+        name: httpd
+        state: restarted
