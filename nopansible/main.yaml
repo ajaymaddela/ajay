@@ -1,0 +1,80 @@
+--- 
+- name: install nopcommerce on ubuntu 
+  hosts: webserver
+  become: yes
+  tasks:
+    - name: fail for unsupported os
+      ansible.builtin.fail: 
+        msg: this works only on ubuntu
+      when: ansible_facts[os_distribution] != 'Ubuntu'
+    - name: install microsoft packages 
+      ansible.builtin.get_url:
+        url: "{{ microsoft_url }}"
+        dest: /home/ubuntu
+        mode: '0644'
+    -  name: microsoft prod 
+       ansible.builtin.command: "{{ dpkg_package }}"
+    -  name: install packages 
+       ansible.builtin.apt:
+         name: "{{ package_name }}"
+         update_cache: yes
+         state: present
+    - name: install nginx
+      ansible.builtin.apt:
+        name: "{{ package }}"
+        state: present
+      notify:
+        - start nginx 
+    - name: create a directory 
+      ansible.builtin.file:
+        path: /var/www/nopCommerce
+        state: directory
+        mode: '0755'
+    - name: install nop packages 
+      ansible.builtin.unarchive:
+        src: "{{ nop_package }}"
+        dest: /var/www/nopCommerce
+        remote_src: yes
+      become: yes
+    - name: check the file exists
+      ansible.builtin.stat:
+        path: /var/www/nopCommerce
+    - name: create a directory 
+      ansible.builtin.file:
+        path: /var/www/nopCommerce/bin 
+        state: directory
+        mode: '0755'
+    - name: create a directory 
+      ansible.builtin.file:
+        path: /var/www/nopCommerce/logs 
+        state: directory
+        mode: '0755'
+    - name: changing ownership 
+      ansible.builtin.file:
+        path: /var/www/nopCommerce
+        owner: www-data
+        group: www-data
+        mode: '777'
+    - name: adding templates
+      ansible.builtin.template:
+         src: /templates/nopcommerce.j2
+         dest: /etc/systemd/system/nopCommerce.service 
+         owner: www-data
+         group: www-data
+         mode: '0644'
+      notify: 
+        - start nopcommerce 
+        - restart nginx 
+  handlers: 
+    - name: start nginx
+      ansible.builtin.service:
+        name: nginx
+        state: started
+    - name: start nopcommerce 
+      ansible.builtin.service:
+        name: nopcommerce 
+        state: started
+    - name: restart nginx 
+      ansible.builtin.service:
+        name: nginx  
+        state: restarted
