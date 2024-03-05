@@ -3,10 +3,10 @@
   hosts: webserver
   become: yes
   tasks:
-    - name: fail for unsupported os
+    - name: fail for unsupported os family 
       ansible.builtin.fail: 
-        msg: this works only on ubuntu
-      when: ansible_facts[distribution] != 'Ubuntu'
+        msg: this works only on Ubuntu os
+      when: ansible_facts[os_family_distribution] != 'Ubuntu'
     - name: install microsoft packages 
       ansible.builtin.get_url:
         url: "{{ microsoft_url }}"
