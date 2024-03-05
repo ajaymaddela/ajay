@@ -61,22 +61,22 @@
         mode: '777'
     - name: adding templates
       ansible.builtin.template:
-         src: /templates/nopcommerce.j2
-         dest: /etc/systemd/system/nopCommerce.service 
-         owner: www-data
-         group: www-data
-         mode: '0644'
-      notify: 
-        - start nopcommerce 
-        - restart nginx 
+        src: "templates/nopcommerce.j2"
+        dest: "/etc/systemd/system/nopCommerce.service"
+        owner: www-data
+        group: www-data
+        mode: '0644'
+      notify:
+        - start nopCommerce
+        - restart nginx
   handlers: 
     - name: start nginx
       ansible.builtin.service:
         name: nginx
         state: started
-    - name: start nopcommerce 
+    - name: start nopCommerce 
       ansible.builtin.service:
-        name: nopcommerce 
+        name: nopCommerce 
         state: started
     - name: restart nginx 
       ansible.builtin.service:
