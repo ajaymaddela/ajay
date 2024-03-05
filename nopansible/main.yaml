@@ -6,7 +6,7 @@
     - name: fail for unsupported os
       ansible.builtin.fail: 
         msg: this works only on ubuntu
-      when: ansible_facts[os_distribution] != 'Ubuntu'
+      when: ansible_facts[distribution] != 'Ubuntu'
     - name: install microsoft packages 
       ansible.builtin.get_url:
         url: "{{ microsoft_url }}"
