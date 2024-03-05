@@ -10,8 +10,7 @@
     - name: install microsoft packages 
       ansible.builtin.get_url:
         url: "{{ microsoft_url }}"
-        dest: /home/ubuntu
-        mode: '0644'
+        dest: /home/ubuntu/packages-microsoft-prod.deb 
     -  name: microsoft prod 
        ansible.builtin.command: "{{ dpkg_package }}"
     -  name: install packages 
@@ -30,7 +29,12 @@
         path: /var/www/nopCommerce
         state: directory
         mode: '0755'
-    - name: install nop packages 
+    - name: Install unzip package
+      become: yes
+      apt:
+        name: unzip
+        state: present
+    - name: Extract the archive
       ansible.builtin.unarchive:
         src: "{{ nop_package }}"
         dest: /var/www/nopCommerce
