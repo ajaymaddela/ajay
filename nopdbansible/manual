@@ -1,0 +1,16 @@
+sudo apt update
+
+sudo apt install mysql-server
+
+sudo systemctl start mysql.service
+
+sudo mysql
+
+
+CREATE USER 'my_user'@'%' IDENTIFIED BY 'fgj7dyfgteh';
+CREATE DATABASE my-database ;
+USE my-database ;
+
+GRANT ALL PRIVILEGES ON *.* TO 'john'@'localhost' WITH GRANT OPTION;
+
+mysql>FLUSH PRIVILEGES;
