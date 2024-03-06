@@ -24,10 +24,8 @@
         host: '%'
         priv: 'nopdb.*:ALL,GRANT'
         state: present
+        check_implicit_admin: true
       become: yes
-    - name: Flush privileges for user 
-      mysql_flush:
-        user: "{{ mysql_user }}"
-        password: "{{ password_name }}"
+   
 
       
