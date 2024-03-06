@@ -58,6 +58,7 @@
         path: /var/www/nopCommerce
         owner: www-data
         group: www-data
+        recurse: true
         mode: '777'
     - name: adding templates
       ansible.builtin.template:
