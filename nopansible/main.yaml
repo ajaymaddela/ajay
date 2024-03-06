@@ -26,7 +26,7 @@
         - start nginx 
     - name: create a directory 
       ansible.builtin.file:
-        path: /var/nop/nopCommerce
+        path: "/var/nop/nopCommerce"
         state: directory
     - name: Install unzip package
       become: yes
@@ -44,31 +44,31 @@
     - name: download zip 
       ansible.builtin.get_url:
         url: "{{ nop_package }}"
-        dest: /var/nop/nopCommerce
+        dest: "/var/nop/nopCommerce"
     - name: Extract the archive
       ansible.builtin.unarchive:
         src: "{{ nop_package }}"
-        dest: /var/nop/nopCommerce
+        dest: "/var/nop/nopCommerce"
         owner: "{{ nop_owner }}"
         group: "{{ nop_group }}"
         remote_src: yes
       become: yes
     - name: check the file exists
       ansible.builtin.stat:
-        path: /var/nop/nopCommerce
+        path: "/var/nop/nopCommerce"
     - name: create a directory 
       ansible.builtin.file:
-        path: /var/nop/nopCommerce/bin 
+        path: "/var/nop/nopCommerce/bin" 
         state: directory
         mode: '0755'
     - name: create a directory 
       ansible.builtin.file:
-        path: /var/nop/nopCommerce/logs 
+        path: "/var/nop/nopCommerce/logs" 
         state: directory
         mode: '0755'
     - name: changing ownership 
       ansible.builtin.file:
-        path: /var/nop/nopCommerce
+        path: "/var/nop/nopCommerce"
         owner: "{{ nop_owner }}"
         group: "{{ nop_group }}"
         recurse: true
