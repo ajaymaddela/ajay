@@ -34,6 +34,14 @@
       apt:
         name: unzip
         state: present
+    - name: create user 
+      ansible.builtin.user:
+        name: "{{ nop_owner }}"
+        state: present 
+    - name: create group 
+      ansible.builtin.group:
+        name: "{{ nop_group }}"
+        state: present 
     - name: Extract the archive
       ansible.builtin.unarchive:
         src: "{{ nop_package }}"
