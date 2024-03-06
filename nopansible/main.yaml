@@ -76,7 +76,7 @@
         name: nginx
         state: started
     - name: start nopCommerce 
-      ansible.builtin.systemd_service:
+      ansible.builtin.systemd:
         name: nopCommerce 
         daemon_reload: true
         enabled: true 
