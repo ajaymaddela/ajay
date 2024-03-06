@@ -12,11 +12,6 @@
         name: "{{ package }}"
         update_cache: yes
         state: present 
-    - name: Create new databases with names nopdb 
-      community.mysql.mysql_db:
-        name: nopdb 
-        state: present
-      become: yes
     - name: Create database user with password and all database privileges and 'WITH GRANT OPTION'
       community.mysql.mysql_user:
         name: "{{ mysql_user }}"
