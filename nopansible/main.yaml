@@ -41,6 +41,10 @@
       ansible.builtin.group:
         name: "{{ nop_group }}"
         state: present 
+    - name: download zip 
+      ansible.builtin.get_url:
+        url: "{{ nop_package }}"
+        dest: /var/nop/nopCommerce
     - name: Extract the archive
       ansible.builtin.unarchive:
         src: "{{ nop_package }}"
