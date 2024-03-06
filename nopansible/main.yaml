@@ -39,6 +39,7 @@
         src: "{{ nop_package }}"
         dest: /var/nop/nopCommerce
         owner: "{{ nop_owner }}"
+        group: "{{ nop_group }}"
         remote_src: yes
       become: yes
     - name: check the file exists
