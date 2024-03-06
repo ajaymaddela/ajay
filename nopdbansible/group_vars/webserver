@@ -1,0 +1,4 @@
+---
+package: mysql-server
+mysql_user: nop
+password_name: nop123
