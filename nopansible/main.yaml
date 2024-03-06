@@ -72,7 +72,7 @@
         owner: "{{ nop_owner }}"
         group: "{{ nop_group }}"
         recurse: true
-        mode: '644'
+        mode: '0755'
     - name: adding templates
       ansible.builtin.template:
         src: "templates/nopcommerce.j2"
