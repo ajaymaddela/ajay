@@ -38,7 +38,6 @@ kind: ReplicaSet
 metadata:
   name: frontend
   labels:
-    app: guestbook
     tier: frontend
 spec:
   replicas: 3
@@ -53,6 +52,10 @@ spec:
       containers:
       - name: php-redis
         image: shaikkhajaibrahim/spcjan2024:1.0 
+        ports:
+        - name: php-redis
+          containerPort: 8080
+          protocol: TCP
 
 
 

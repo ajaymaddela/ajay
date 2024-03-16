@@ -38,7 +38,7 @@ spec:
       requiredDuringSchedulingIgnoredDuringExecution:
         - labelSelector:
             matchLabels:
-              app: alpine
+              name: antiaffinity 
           topologyKey: kubernetes.io/hostname
   restartPolicy: Never
   containers:

@@ -102,3 +102,11 @@ sudo systemctl status nopCommerce.service
 
 then restart the nginx server 
 sudo systemctl restart nginx
+
+
+
+
+
+published path 
+
+#### dotnet publish -c Release Nop.Web.csproj  -o /published

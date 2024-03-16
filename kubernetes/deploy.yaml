@@ -14,7 +14,8 @@ spec:
   template:
     metadata:
       name: nginx
-      app: dev
+      labels:
+        app: dev
     spec:
       containers:
         - name: nginx
@@ -24,8 +25,8 @@ spec:
               containerPort: 80 
           resources: 
             limits: 
-              cpu: "50m"
-              memory: "50Mi"
+              cpu: "500m"
+              memory: "500Mi"
           livenessProbe: 
             httpGet:
               path: /home/dell/nginx

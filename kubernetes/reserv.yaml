@@ -6,14 +6,12 @@ metadata:
   name: nginx
   labels: 
     app: nginx
-    env: dev
 spec:  
   minReadySeconds: 5
   replicas: 3
   selector: 
     matchLabels:
       app: nginx
-      env: dev
   template:
     metadata: 
       name: nginx
@@ -40,11 +38,10 @@ metadata:
   name: ajay-svc
   labels:
     app: nginx
-    env: dev
 spec: 
   type: NodePort
   ports: 
-    - name: ngin-sc
+    - name: nginx-sc
       nodePort: 31000
       port: 80
       targetPort: 80

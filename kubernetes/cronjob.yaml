@@ -5,20 +5,20 @@ kind: CronJob
 metadata:
   name: nginx-cj
   labels:
-    app: nginx 
+    app: nginx-re 
 spec: 
   jobTemplate:
     metadata:
       name: nginx-re
       labels:
-        app: nginx
+        app: nginx-re
     spec: 
       backoffLimit: 3
       template: 
         metadata: 
           name: nginx-re
           labels:
-            app: nginx
+            app: nginx-re
         spec:
           containers:
             - name: nginx
@@ -26,4 +26,4 @@ spec:
               ports:
                 - name: nginx
                   containerPort: 80
-  schedule: 44 11 * * 2
+  schedule: 0 17 * * 2
