@@ -5,7 +5,7 @@ kind: DaemonSet
 metadata:
   name: nginx-ds
   labels:
-    app: nginx
+    app: nginx-ds 
 spec: 
   minReadySeconds: 5
   selector:
@@ -14,9 +14,10 @@ spec:
       app: nginx-ds
   template: 
     metadata:
-      name: nginx
+      name: nginx-ds
       labels:
-        app: nginx
+        name: nginx-ds
+        app: nginx-ds
     spec:
       restartPolicy: Always
       containers:

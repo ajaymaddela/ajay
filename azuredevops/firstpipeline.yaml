@@ -1,0 +1,9 @@
+pool: Default
+
+  
+
+steps:
+- task: "maven@4"
+  inputs:
+    mavenPOMFile: "pom.xml"
+    goals: "package"

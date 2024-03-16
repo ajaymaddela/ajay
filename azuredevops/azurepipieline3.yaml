@@ -1,0 +1,41 @@
+trigger:
+  - master
+stages:
+  - stage: publish 
+    displayName: publish project
+    pool:
+      name: Default
+    jobs:
+      - job: publish using dotnet 
+        displayName: dotnet 
+        steps:
+          - task: UseDotNet@2
+            inputs:
+              version: '8.x'
+
+          - task: Bash@3
+            displayName: 'Check .NET Version and SDKs'
+            inputs:
+              targetType: 'inline'
+              script: |    
+                  dotnet --version
+                  dotnet --list-sdks
+                  dotnet --list-runtimes
+
+          - task: DotNetCoreCLI@2
+            displayName: 'dotnet publish'
+            inputs:
+              command: 'publish'
+              publishWebProjects: true
+              projects: '/src/Presentation/Nop.Web/Nop.Web.csproj'
+              arguments: '--configuration release --output $(build.artifactstagingdirectory)'
+              zipAfterPublish: true
+              packDirectory: $(build.artifactstagingdirectory)
+              configuration: $(BuildConfiguration)
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Artifact'
+            inputs:
+              targetPath: '$(Build.ArtifactStagingDirectory)'
+              artifactName: 'drop'
+              
