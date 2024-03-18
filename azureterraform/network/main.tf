@@ -15,7 +15,7 @@ resource "azurerm_subnet" "subnets" {
   count                = length(var.subnet_names)
   virtual_network_name = azurerm_virtual_network.akki.name
   resource_group_name  = azurerm_resource_group.ajay.name
-  address_prefixes     = [cidrsubnet(var.network_cidr, 8, count.index)]
+  address_prefixes     = [cidrsubnet(var.network_cidr, 8,count.index)]
   depends_on           = [azurerm_virtual_network.akki]
 
 }

@@ -27,7 +27,7 @@ stages:
             inputs:
               command: 'publish'
               publishWebProjects: true
-              projects: '/src/Presentation/Nop.Web/Nop.Web.csproj'
+              projects: '/src/Presentation/Nop.Web'
               arguments: '--configuration release --output $(build.artifactstagingdirectory)'
               zipAfterPublish: true
               packDirectory: $(build.artifactstagingdirectory)
@@ -39,3 +39,7 @@ stages:
               targetPath: '$(Build.ArtifactStagingDirectory)'
               artifactName: 'drop'
               
+          - task: NuGetRestore@1
+            inputs:
+              solution: '**/*.sln' 
+              selectOrConfig: 'select'
