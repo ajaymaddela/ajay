@@ -1,0 +1,13 @@
+---
+trigger:
+  - master
+parameters:
+  - name: mavengoal
+    displayName: goalmaven
+    type: string
+    default: package
+    values:
+      - package
+      - clean package
+      - install
+      - clean install

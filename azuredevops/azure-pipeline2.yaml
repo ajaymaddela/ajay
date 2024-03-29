@@ -21,3 +21,8 @@ stages:
             inputs:
               pathToPublish: $(Build.ArtifactStagingDirectory)
               artifactName: BuildOutputs
+
+
+
+
+          spring petclinic 

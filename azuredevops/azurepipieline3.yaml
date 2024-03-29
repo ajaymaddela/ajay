@@ -13,14 +13,7 @@ stages:
             inputs:
               version: '8.x'
 
-          - task: Bash@3
-            displayName: 'Check .NET Version and SDKs'
-            inputs:
-              targetType: 'inline'
-              script: |    
-                  dotnet --version
-                  dotnet --list-sdks
-                  dotnet --list-runtimes
+         
 
           - task: DotNetCoreCLI@2
             displayName: 'dotnet publish'
@@ -37,9 +30,6 @@ stages:
             displayName: 'Publish Artifact'
             inputs:
               targetPath: '$(Build.ArtifactStagingDirectory)'
-              artifactName: 'drop'
+              artifactName: 'buildartifact'
               
-          - task: NuGetRestore@1
-            inputs:
-              solution: '**/*.sln' 
-              selectOrConfig: 'select'
+          

@@ -1,0 +1,22 @@
+trigger:
+  - master
+pool: 
+  name: Default 
+
+parameters:
+  - name: mavengoal
+    displayName: goalmaven
+    type: string
+    default: package
+    values:
+      - package
+      - clean package
+      - install
+      - clean install
+stages:
+  - template: templates/build-using-maven.yaml
+    parameters:
+      goal: 'package'
+      mavenpomfile: 'pom.xml'
+      javadirectory: /usr/lib/jvm/java-8-openjdk-amd64
+      content: '**/target/**.war'

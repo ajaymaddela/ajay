@@ -1,0 +1,41 @@
+parameters:
+  - name: goal
+    displayName: maven goal
+    type: string
+    default: package
+  - name: mavenpomfile
+    displayName: maven pom
+    type: string
+    default: 'pom.xml'
+  - name: javadirectory
+    displayName: java home
+    type: string
+    default: /usr/lib/jvm/java-17-openjdk-amd64
+  - name: content
+    displayName: folder
+    type: string
+    default: target/spring-petclinic-3.2.0-SNAPSHOT.jar
+
+
+stages:
+  - stage: buildmaven
+    displayName: using maven
+    pool: Default
+    jobs:
+      - job: build
+        displayName: building maven
+        steps:
+          - task: Maven@4
+            inputs:
+              mavenPOMFile: ${{ parameters.mavenpomfile }}
+              goals: ${{ parameters.goal }}
+              javaHomeOption: Path
+              jdkDirectory: ${{ parameters.javadirectory }}
+          - task: CopyFiles@2
+            inputs:
+              contents: ${{ parameters.content }}
+              targetFolder: $(Build.ArtifactStagingDirectory)
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathToPublish: $(Build.ArtifactStagingDirectory)
+              artifactName: MyBuildOutputs

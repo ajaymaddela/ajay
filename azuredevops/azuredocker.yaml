@@ -1,0 +1,15 @@
+---  
+# todo write stages and jobs compulsory
+trigger:
+  - main
+pool:
+  name: Default
+
+  steps:
+    - task: Docker@2
+      inputs:
+        command: 'buildAndPush'
+        Dockerfile: 'Dockerfile'
+        containerRegistry: 'Dockerhub'  #todo the name of the docker rigistry while given during service connection
+        repository: 'ajaykumar020/springpetclinic' #todo name of the docker hub repository 
+        tags: '$(Build.BuildId)'
