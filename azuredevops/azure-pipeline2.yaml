@@ -4,10 +4,12 @@ trigger:
 stages:
   - stage: build
     displayName: build code 
+    
     jobs:
       - job: build
         displayName: build using maven 
         pool: Default
+        
         steps:
           - task: Maven@4
             inputs:
