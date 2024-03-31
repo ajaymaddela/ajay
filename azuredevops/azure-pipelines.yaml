@@ -13,6 +13,8 @@ parameters:
       - clean package
       - install
       - clean install
+
+      
 resources:
   repositories:
     - repository: templates #todo it is id which is givenby us

@@ -11,17 +11,20 @@ spec:
   restartPolicy: Always
   containers: 
     - name: tomcat 
-      image: tomcat:jre11
+      image: tomcat:jre21-temurin-jammy
       livenessProbe: 
         grpc:
           port: 80
       ports:
         - name: tomcat-re
-          containerPort: 80
+          containerPort: 8080
       readinessProbe:
         grpc:
-          port: 80 
-
+          port: 8080
+      resources:
+        limits:
+          cpu: "500m"
+          memory: "500Mi"
 ---
 
 apiVersion: v1
@@ -37,6 +40,6 @@ spec:
   ports: 
     - name: tomcat-re
       nodePort: 31000
-      port: 80
-      targetPort: 80
+      port: 8080
+      targetPort: 8080
   
