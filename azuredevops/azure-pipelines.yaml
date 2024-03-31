@@ -14,13 +14,15 @@ parameters:
       - install
       - clean install
 
-      
+
 resources:
   repositories:
     - repository: templates #todo it is id which is givenby us
       name: ajaykumar # todo it is repository name 
       ref: 'refs/heads/main' #todo it is branch name
       type: git
+
+      
 stages:
   - template: templates/build-using-maven.yaml@templates # respository id at end
     parameters:
