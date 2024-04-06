@@ -19,7 +19,7 @@ spec:
     metadata:
       name: jenkins
       labels: 
-      app: jenkins
+        app: jenkins
     spec:
       Containers:
         - name: jenkins

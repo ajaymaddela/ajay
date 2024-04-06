@@ -32,8 +32,7 @@ spec:
               containerPort: 5000
           env: 
             - name: ASPNETCORE_ENVIRONMENT
-              value: Production
-      initContainers: 
+              value: Production 
         - name: customermanagementapi
           image: pitstop/customermanagementapi:1.0
           ports: 
@@ -41,8 +40,7 @@ spec:
               containerPort: 5100
           env: 
             - name: ASPNETCORE_ENVIRONMENT
-              value: Production
-      initContainers: 
+              value: Production 
         - name: workshopmanagementapi
           image: pitstop/workshopmanagementapi:1.0
           ports: 
@@ -51,31 +49,30 @@ spec:
           env: 
             - name: ASPNETCORE_ENVIRONMENT
               value: Production
-      initContainers: 
         - name: auditlogservice
           image: pitstop/auditlogservice:1.0
           env: 
             - name: DOTNETCORE_ENVIRONMENT
               value: Production
-      initContainers: 
+  
         - name: invoiceservice
           image: pitstop/invoiceservice:1.0
           env: 
             - name: DOTNETCORE_ENVIRONMENT
               value: Production
-      initContainers: 
+    
         - name: notificationservice
           image: pitstop/notificationservice:1.0
           env: 
             - name: DOTNETCORE_ENVIRONMENT
               value: Production
-      initContainers: 
+    
         - name: timeservice
           image: pitstop/timeservice:1.0
           env: 
             - name: DOTNETCORE_ENVIRONMENT
               value: Production
-      initContainers: 
+      
         - name: WorkshopManagementEventHandler
           image: pitstop/workshopmanagementeventhandler:1.0
           env: 
@@ -99,7 +96,7 @@ spec:
         - name: cus-vol 
           emptyDir:
             medium: ""
-            sizeLimit: 500Mi
+            sizeLimit: 5000Mi
         - name: rabbitmq-config
           hostPath:
             path: /path/to/your/local/rabbitmq
@@ -154,7 +151,7 @@ spec:
           env: 
             - name: ASPNETCORE_ENVIRONMENT
               value: Production
-      initContainers: 
+      
         - name: customermanagementapi
           image: pitstop/customermanagementapi:1.0
           ports: 
@@ -163,7 +160,7 @@ spec:
           env: 
             - name: ASPNETCORE_ENVIRONMENT
               value: Production
-      initContainers: 
+
         - name: workshopmanagementapi
           image: pitstop/workshopmanagementapi:1.0
           ports: 
@@ -172,19 +169,19 @@ spec:
           env: 
             - name: ASPNETCORE_ENVIRONMENT
               value: Production
-      initContainers: 
+    
         - name: invoiceservice
           image: pitstop/invoiceservice:1.0
           env: 
             - name: DOTNETCORE_ENVIRONMENT
               value: Production
-      initContainers: 
+    
         - name: notificationservice
           image: pitstop/notificationservice:1.0
           env: 
             - name: DOTNETCORE_ENVIRONMENT
               value: Production
-      initContainers: 
+    
         - name: WorkshopManagementEventHandler
           image: pitstop/workshopmanagementeventhandler:1.0
           env: 

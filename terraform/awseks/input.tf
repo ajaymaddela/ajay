@@ -4,7 +4,7 @@ variable "eks_name" {
 }
 variable "role_arn" {
   type    = string
-  default = "arn:aws:iam::905418198314:role/eksajay"
+  default = 
 }
 variable "subnet_ids" {
   type    = list(string)
