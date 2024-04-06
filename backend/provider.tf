@@ -17,7 +17,7 @@ terraform {
     resource_group_name = "ajay"
     storage_account_name = "ltqt"
     container_name = "ltqtgt"
-    key = "nop.terraform.tfstate"
+    key = 
     
   }
 }
