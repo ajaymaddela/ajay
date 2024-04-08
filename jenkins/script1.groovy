@@ -17,11 +17,7 @@ pipeline {
               
             }
         }
-        stage {
-            steps {
-
-            }
-        }
+       
         
     }
 }
