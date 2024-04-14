@@ -13,11 +13,11 @@ provider "azurerm" {
   }
 }
 terraform {
- # backend "azurerm" {
-   # resource_group_name = "ajay"
-   # storage_account_name = "ltqt"
-    #container_name = "ltqtgt"
-    #key = 
+  backend "azurerm" {
+   resource_group_name = "ajay"
+   storage_account_name = "ltqt"
+    container_name = "ltqtgt"
+    key = "terraform.tfstate"
     
   }
 }
