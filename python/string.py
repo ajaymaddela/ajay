@@ -1,2 +1,4 @@
 a="ajay kumar"
-print(len(a))
+# print(len(a)
+def stringlen(a):
+    
