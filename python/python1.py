@@ -142,6 +142,8 @@
 
 # t1=(1,2,3)
 # t2=(2,2,1)
+# t=t1+t2
+# print(t)
 # # print(t1*5)
 # for i in t1:
 #     for j in t2:
@@ -173,12 +175,12 @@
 
 
 # a={1,9,2,8,7,6,0}
-'''
-add
-update
-pop
-remove
-'''
+# '''
+# add
+# update
+# pop
+# remove
+# '''
 # a.add(122)
 # a.update({12,112})
 # a.pop()
@@ -191,7 +193,7 @@ remove
 # set2={4,5,6}
 # print(set1.union(set2))
 
-#intersection common letters
+#intersection print common letters
 # set1={1,2,3,4}
 # set2={3,4,5,6}
 # print(set1.intersection(set2))
@@ -234,12 +236,12 @@ remove
 # print(s.read())
 # s.close()
 
-# write 
+# write it will truncate total change
 # s=open('./backend/main.tf',mode='w')
 # s.write("ajaykumarmaddelakondapur")
 # s.close()
 
-# read and write 
+# read and write  after reading write will add at last
 # s=open('./backend/main.tf',mode='r+')
 # print(s.read())
 # s.write("write resources here must required")
@@ -250,7 +252,7 @@ remove
 # s.write("shutup")
 # s.close()
 
-#write and read 
+#write and read  write will truncate
 # s=open("./backend/main.tf",mode="w+")
 # s.write("hi ajay")
 # s.seek(0)
