@@ -1,0 +1,17 @@
+pipeline {
+    agent { label 'spc' }
+    triggers {
+        pollSCM('H/5 * * * *') // Poll SCM every 5 minutes
+    }
+    stages {
+   
+        stage('Terraform Init && Apply') {
+            steps {
+                dir('azureterraform/network') { // Navigate to the specific directory
+                    sh 'terraform init'
+                    sh 'terraform apply -var-file="ajay.tfvars" -auto-approve'
+                }
+            }
+        }
+    }
+}

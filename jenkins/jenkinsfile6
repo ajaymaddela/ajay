@@ -1,0 +1,22 @@
+pipeline {
+    agent { label 'spc' }
+    triggers {
+        pollSCM('H/5 * * * *') // Poll SCM every 5 minutes
+    }
+    stages {
+   
+        stage('Terraform Init && Apply') {
+            steps {
+                dir('infra') { // Navigate to the specific directory
+                    sh 'terraform init'
+                    sh 'terraform apply -var-file="./env/sandbox/values.tfvars" -auto-approve'
+                }
+            }
+        }
+    }
+}
+
+
+
+/remote/workspace/ajji while cloning every thing from git is stored and executed from this place so we 
+mentioned infra over above
