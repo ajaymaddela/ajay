@@ -50,15 +50,15 @@ spec:
           restartPolicy: "Always"
           resources:
             requests:
-              cpu: "25m"
-              memory: "25Mi"
-            limits:
               cpu: "50m"
               memory: "50Mi"
+            limits:
+              cpu: "100m"
+              memory: "100Mi"
           volumeMounts: 
             - name: ajay-vol
               readOnly: true
-              mountPath: /var/lib
+              mountPath: /mnt
       volumes:
         - name: ajay-vol
           emptyDir:
@@ -77,15 +77,14 @@ metadata:
     env: dev
     ver: "1.0"
 spec:
-  type: NodePort
+  type: NodePort 
   selector: 
     app: nginx
     env: dev
     ver: "1.0"
   ports:  
     - name: ajay-po
-      nodePort: 32000
-      port: 80
+      nodePort: 31000
       protocol: "TCP"
       targetPort: 80
 

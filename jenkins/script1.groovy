@@ -1,5 +1,5 @@
 pipeline {
-    agent {label 'nop'}
+    agent any 
     stages{
         stage(git) {
             steps {

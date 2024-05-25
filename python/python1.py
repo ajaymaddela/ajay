@@ -74,7 +74,7 @@
 # break statement
 # a="ajaykumar"
 # for i in a:
-#    if i=='k':
+#    if i=='u':
 #       break      #for break statement print should be written below to if condition
 #    print(i,end='')
 
