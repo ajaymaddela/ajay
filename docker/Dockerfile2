@@ -1,0 +1,24 @@
+# Use an existing image as a base
+FROM ubuntu:latest
+
+# Update packages and install necessary dependencies
+RUN apt-get update && \
+    apt-get install -y openjdk-11-jdk maven && \
+    apt-get clean
+
+# Set environment variables
+ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64
+ENV MAVEN_HOME /usr/share/maven
+ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
+
+# Set PATH variable
+ENV PATH "$MAVEN_HOME/bin:$PATH"
+
+# Define working directory
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+COPY . /app
+
+# Default command to execute when the container starts
+CMD ["bash"]
