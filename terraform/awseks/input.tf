@@ -4,7 +4,7 @@ variable "eks_name" {
 }
 variable "role_arn" {
   type    = string
-  default = 
+  default = ""
 }
 variable "subnet_ids" {
   type    = list(string)
