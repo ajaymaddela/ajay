@@ -1,0 +1,9 @@
+allocated_storage    = 10
+  db_name              = "postgres"
+  engine               = "postgres"
+  engine_version       = "15.4"
+  instance_class       = "db.t3.micro"
+  username             = "appsoc"
+  password             = "admin123"
+#   parameter_group_name = "postgres"
+  skip_final_snapshot  = true
