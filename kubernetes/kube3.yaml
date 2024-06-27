@@ -4,7 +4,14 @@ kind: Pod
 metadata:
   name: httpd-pod
 spec:
+  restartPolicy: Always
+  initContainers:
+    - name: ajay
+      image: alpine
+      args:
+        - sleep
+        - 1d
   containers:
     - name: dyingapache
       image: httpd:2.4
-  
+      

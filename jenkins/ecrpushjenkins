@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+    
+    environment {
+        AWS_DEFAULT_REGION = 'your-region'  // Replace with your AWS region
+        AWS_ACCOUNT_ID = 'your-account-id'  // Replace with your AWS account ID
+        AWS_ECR_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/your-repo.git'  // Replace with your Git repository URL
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Build Docker image
+                    def dockerImage = docker.build("your-image-name")
+                    dockerImage.push()
+                }
+            }
+        }
+        
+        stage('Push to ECR') {
+            steps {
+                script {
+                    // Authenticate with ECR using AWS credentials from Jenkins credentials store
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws-ecr-access', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+                        sh """
+                            \$(aws ecr get-login --no-include-email --region ${AWS_DEFAULT_REGION})
+                            docker tag your-image-name ${AWS_ECR_URL}/your-repo:latest
+                            docker push ${AWS_ECR_URL}/your-repo:latest
+                        """
+                    }
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo 'Docker image built and pushed successfully to ECR!'
+            // Add further actions upon successful build if needed
+        }
+        
+        failure {
+            echo 'Build failed! Check Jenkins logs for details.'
+            // Add further actions upon build failure if needed
+        }
+    }
+}
