@@ -44,16 +44,16 @@ module "eks" {
   eks_managed_node_groups = {
     blue = {
       min_size     = 1
-      max_size     = 1
-      desired_size = 1
+      max_size     = 3
+      desired_size = 2
 
       instance_types = ["t2.medium"]
       capacity_type  = "ON_DEMAND"
     }
     green = {
-      min_size     = 1
-      max_size     = 2
-      desired_size = 1
+      min_size     = 0
+      max_size     = 1
+      desired_size = 0
 
       instance_types = ["t2.medium"]
       capacity_type  = "ON_DEMAND"
@@ -71,6 +71,10 @@ module "eks" {
   }
 }
 
+output "oidc_provider_arn" {
+    value = module.eks.oidc_provider_arn
+  }
+
 ################################################################################
 # Load Balancer Role
 ################################################################################
@@ -83,7 +87,7 @@ module "lb_role" {
 
   oidc_providers = {
     main = {
-      provider_arn               = module.eks
+      provider_arn               = module.eks.oidc_provider_arn
       namespace_service_accounts = ["kube-system:aws-load-balancer-controller"]
     }
   }
