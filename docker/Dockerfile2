@@ -1,5 +1,6 @@
 # Use an existing image as a base
-FROM ubuntu:latest
+FROM ubuntu:20.04  
+# latest
 
 # Update packages and install necessary dependencies
 RUN apt-get update && \
@@ -22,3 +23,4 @@ COPY . /app
 
 # Default command to execute when the container starts
 CMD ["bash"]
+# CMD ["mvn", "clean", "install"]

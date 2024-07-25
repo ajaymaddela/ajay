@@ -22,7 +22,7 @@ spec:
         - containerPort: 80
           name: nginx        
 
----
+
 
 ---
 

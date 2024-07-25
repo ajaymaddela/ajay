@@ -2,38 +2,43 @@ pipeline {
     agent any
     
     environment {
-        AWS_DEFAULT_REGION = 'your-region'  // Replace with your AWS region
-        AWS_ACCOUNT_ID = 'your-account-id'  // Replace with your AWS account ID
+        AWS_DEFAULT_REGION = 'us-east-1'  // Replace with your AWS region
+        AWS_ACCOUNT_ID = '3847-7781-9802'  // Replace with your AWS account ID
         AWS_ECR_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+        ECR_PUBLIC_REPO_URL = 'public.ecr.aws/b9r5x6f7'  // Replace with your ECR Public repository URL
     }
     
     stages {
-        stage('Checkout') {
+        stage('Clean Workspace') {
             steps {
-                git 'https://github.com/your-repo.git'  // Replace with your Git repository URL
+                cleanWs()
+            }
+        }
+        
+        stage('Checkout from Git') {
+            steps {
+                git branch: 'main', url: 'https://github.com/ajaymaddela/netflix.git'
             }
         }
         
         stage('Build Docker Image') {
             steps {
-                script {
-                    // Build Docker image
-                    def dockerImage = docker.build("your-image-name")
-                    dockerImage.push()
-                }
+                sh "docker build -t project:latest ."
             }
         }
         
-        stage('Push to ECR') {
+        stage('Push to ECR Public') {
             steps {
                 script {
-                    // Authenticate with ECR using AWS credentials from Jenkins credentials store
+                    // Authenticate with ECR Public using AWS credentials from Jenkins credentials store
                     withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws-ecr-access', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-                        sh """
-                            \$(aws ecr get-login --no-include-email --region ${AWS_DEFAULT_REGION})
-                            docker tag your-image-name ${AWS_ECR_URL}/your-repo:latest
-                            docker push ${AWS_ECR_URL}/your-repo:latest
-                        """
+                        // Get ECR Public login password and login to Docker
+                        def ecrPassword = sh(script: "aws ecr-public get-login-password --region ${AWS_DEFAULT_REGION}", returnStdout: true).trim()
+                        sh "echo ${ecrPassword} | docker login --username AWS --password-stdin ${ECR_PUBLIC_REPO_URL}"
+                        
+                        // Tag and push the Docker image to ECR Public
+                        sh "docker tag project:latest ${ECR_PUBLIC_REPO_URL}/project:latest"
+                        sh "docker push ${ECR_PUBLIC_REPO_URL}/project:latest"
                     }
                 }
             }
@@ -42,7 +47,7 @@ pipeline {
     
     post {
         success {
-            echo 'Docker image built and pushed successfully to ECR!'
+            echo 'Docker image built and pushed successfully to ECR Public!'
             // Add further actions upon successful build if needed
         }
         
