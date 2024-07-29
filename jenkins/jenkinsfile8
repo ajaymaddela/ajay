@@ -11,6 +11,14 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/ajaymaddela/netflix.git'
             }
         }
+        stage('install docker'){
+            steps{
+                sh "curl -fsSL https://get.docker.com -o install-docker.sh"
+                sh "sh install-docker.sh"
+                sh "sudo usermod -aG docker ubuntu"
+                sh "sudo usermod -aG docker jenkins"
+            }
+        }
         stage('Build docker image') {
             steps {
                 sh "docker image build -t ajaykumar020/netflix:1.0 ."

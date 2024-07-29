@@ -25,7 +25,7 @@ resource "azurerm_network_interface" "qtlt" {
   ip_configuration {
     name                          = "thought"
     subnet_id                     = azurerm_subnet.app.id
-    private_ip_address_allocation = "Static"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id = azurerm_public_ip.public.id
   }
   depends_on = [azurerm_subnet.app]
@@ -65,6 +65,24 @@ resource "azurerm_linux_virtual_machine" "qtdevops" {
 
 
   }
+}
+
+resource "null_resource" "enable_password_authenication" {
+  provisioner "remote-exec" {
+    inline = [ 
+      "sudo sed -i 's/ #PasswordAuthentication yes/ PasswordAuthenication yes/' /etc/ssh/sshd_config",
+      "sudo systemctl restart sshd"
+     ]
+     connection {
+       type = "ssh"
+       user = "ubuntu"
+       private_key = file("~/.ssh/id_rsa")
+       host = azurerm_linux_virtual_machine.qtdevops.public_ip_address
+     }
+     
+  }
+  depends_on = [ azurerm_linux_virtual_machine.qtdevops ]
+  
 }
 
 output "public_ip_address" {
