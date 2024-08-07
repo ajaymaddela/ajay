@@ -48,6 +48,18 @@ Resources:
       Tags:
         - Key: Name
           Value: Private Subnet AZ B
+        
+  # private subnet 3
+  PrivateSubnet3:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      CidrBlock: 10.0.12.0/24
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [2, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: Private Subnet AZ C
 
   # Internet Gateway
   Igw:
@@ -197,7 +209,7 @@ Resources:
       FirewallName: network-firewall
       VpcId: !Ref VPC
       SubnetMappings:
-        - SubnetId: !Ref PublicSubnet1
+        - SubnetId: !Ref PrivateSubnet1
       FirewallPolicyArn: !Ref FirewallPolicy
       DeleteProtection: false
       FirewallPolicyChangeProtection: false
@@ -267,27 +279,78 @@ Resources:
   NetworkLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
+      Type: network
+      Scheme: internet-facing
+      IpAddressType: ipv4
       Name: MyNLB
       Subnets:
-        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
         # - !Ref PrivateSubnet2
-      Type: network
+      
+      
+  # NetworkLoadBalancer:
+  #   Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+  #   Properties:
+  #     Type: network
+  #     Scheme: internet-facing
+  #     IpAddressType: ipv4
+  #     SubnetMappings:
+  #       - SubnetId: ''
+  #     LoadBalancerAttributes:
+  #       - Key: deletion_protection.enabled
+  #         Value: false
+  #       - Key: access_logs.s3.enabled
+  #         Value: false
+  #       - Key: load_balancing.cross_zone.enabled
+  #         Value: false
 
   # Target Group for NLB
-  TargetGroup:
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+  # TargetGroup:
+  #   Type: AWS::ElasticLoadBalancingV2::TargetGroup
+  #   Properties:
+  #     Name: MyTargetGroup
+  #     VpcId: !Ref VPC
+  #     Protocol: TCP
+  #     Port: 80
+
+  NetworkLoadBalancerTargetGroup1:
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
     Properties:
       Name: MyTargetGroup
+      TargetType: instance
       VpcId: !Ref VPC
       Protocol: TCP
-      Port: 8080
+      Port: 80
+      Targets:
+        - Id: ''
+          Port: 80
+      HealthCheckEnabled: true
+      HealthCheckIntervalSeconds: 30
+      HealthCheckProtocol: TCP
+      HealthCheckPort: 80
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 3
+
+  NetworkLoadBalancerListener1:
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+    Properties:
+      LoadBalancerArn:
+        !Ref NetworkLoadBalancer
+      Protocol: TCP
+      Port: 80
+      DefaultActions:
+        - Type: forward
+          ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn: !Ref NetworkLoadBalancerTargetGroup1
 
 
   NatGateway:
     Type: 'AWS::EC2::NatGateway'
     Properties:
       SubnetId:
-        Ref: PrivateSubnet1
+        Ref: PublicSubnet1
       AllocationId:
         'Fn::GetAtt':
           - NatGw1ElasticIP
