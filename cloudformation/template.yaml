@@ -1,0 +1,308 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Setup VPC with Network Firewall, NLB, and associated resources
+
+Resources:
+  # VPC
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: Nlbvpc
+
+  # Public Subnet
+  PublicSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      CidrBlock: 10.0.0.0/24
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: Public Subnet AZ A
+
+  # Private Subnet 1
+  PrivateSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      CidrBlock: 10.0.10.0/24
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: Private Subnet AZ A
+
+  # Private Subnet 2
+  PrivateSubnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      CidrBlock: 10.0.11.0/24
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: Private Subnet AZ B
+
+  # Internet Gateway
+  Igw:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties: {}
+
+  # Attach Internet Gateway to VPC
+  IGWAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref Igw
+
+  # Route Table for Public Subnet
+  RouteTablePublic:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: Public Route Table
+
+  # Route Table Association for Public Subnet
+  RouteTablePublicAssociation1:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      SubnetId: !Ref PublicSubnet1
+
+  # Route for Internet Access in Public Subnet
+  RouteTablePublicRoute0:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref RouteTablePublic
+      GatewayId: !Ref Igw
+
+
+
+  # Security Group
+  SecurityGroup1:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Build a custom security group.
+      VpcId: !Ref VPC
+      SecurityGroupEgress: []
+      SecurityGroupIngress:
+        - FromPort: 0
+          ToPort: 0
+          IpProtocol: tcp
+          CidrIp: 0.0.0.0/0
+        - FromPort: 0
+          ToPort: 0
+          IpProtocol: '-1'
+          CidrIp: 0.0.0.0/0
+      GroupName: custom-sg
+
+  # Stateful Rule Group
+  RuleGroup1:
+    Type: 'AWS::NetworkFirewall::RuleGroup'
+    Properties:
+      Capacity: '1000'
+      RuleGroupName: statefulrule1
+      Type: STATEFUL
+      Tags:
+        - Key: Name
+          Value: statefulrule1
+      RuleGroup:
+        RulesSource:
+          StatefulRules:
+            - Action: PASS
+              Header:
+                Destination: ANY
+                DestinationPort: ANY
+                Direction: ANY
+                Protocol: TCP
+                Source: ANY
+                SourcePort: ANY
+              RuleOptions:
+                - Keyword: 'sid:1'
+            - Action: PASS
+              Header:
+                Destination: ANY
+                DestinationPort: ANY
+                Direction: ANY
+                Protocol: SSH
+                Source: ANY
+                SourcePort: ANY
+              RuleOptions:
+                - Keyword: 'sid:2'
+            - Action: PASS
+              Header:
+                Destination: ANY
+                DestinationPort: ANY
+                Direction: ANY
+                Protocol: HTTP
+                Source: ANY
+                SourcePort: ANY
+              RuleOptions:
+                - Keyword: 'sid:3'
+
+  # Stateless Rule Group
+  RuleGroup2:
+    Type: 'AWS::NetworkFirewall::RuleGroup'
+    Properties:
+      Capacity: '1000'
+      RuleGroupName: statlessrule1
+      Type: STATELESS
+      Tags:
+        - Key: Name
+          Value: statlessrule1
+      Description: statlessrule
+      RuleGroup:
+        RulesSource:
+          StatelessRulesAndCustomActions:
+            StatelessRules:
+              - Priority: 1
+                RuleDefinition:
+                  Actions:
+                    - 'aws:forward_to_sfe'
+                  MatchAttributes:
+                    Sources:
+                      - AddressDefinition: 0.0.0.0/0
+                    Destinations:
+                      - AddressDefinition: 0.0.0.0/0
+
+  # Firewall Policy
+  FirewallPolicy:
+    Type: 'AWS::NetworkFirewall::FirewallPolicy'
+    Properties:
+      FirewallPolicyName: fwpolicy
+      FirewallPolicy:
+        StatelessDefaultActions:
+          - 'aws:forward_to_sfe'
+        StatelessFragmentDefaultActions:
+          - 'aws:forward_to_sfe'
+        StatefulRuleGroupReferences:
+          - ResourceArn: !Ref RuleGroup1
+        StatelessRuleGroupReferences:
+          - Priority: 1
+            ResourceArn: !Ref RuleGroup2
+
+  # Network Firewall
+  NetworkFirewall:
+    Type: 'AWS::NetworkFirewall::Firewall'
+    Properties:
+      FirewallName: network-firewall
+      VpcId: !Ref VPC
+      SubnetMappings:
+        - SubnetId: !Ref PublicSubnet1
+      FirewallPolicyArn: !Ref FirewallPolicy
+      DeleteProtection: false
+      FirewallPolicyChangeProtection: false
+      SubnetChangeProtection: false
+      Tags:
+        - Key: Name
+          Value: network-firewall
+
+
+  # Route Table for Private Subnet 1
+  RouteTablePrivate1:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: Private-route1
+    DependsOn: NetworkFirewall 
+
+  # Route Table Association for Private Subnet 1
+  RouteTablePrivate1Association1:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate1
+      SubnetId: !Ref PrivateSubnet1
+    DependsOn: NetworkFirewall 
+
+  # Route for Private Subnet 1 to Firewall Endpoint
+  RouteTablePrivate1Route:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate1
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+    DependsOn: NetworkFirewall 
+      # VpcEndpointId: !GetAtt NetworkFirewall.EndpointId
+
+  # Route Table for Private Subnet 2
+  RouteTablePrivate2:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: Private-route2
+    DependsOn: NetworkFirewall 
+
+  # Route Table Association for Private Subnet 2
+  RouteTablePrivate2Association1:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate2
+      SubnetId: !Ref PrivateSubnet2
+    DependsOn: NetworkFirewall 
+
+  # Route for Private Subnet 2 to Firewall Endpoint
+  RouteTablePrivate2Route:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate2
+      DestinationCidrBlock: 0.0.0.0/0
+      VpcEndpointId: !Select ["1", !Split [":", !Select ["0", !GetAtt NetworkFirewall.EndpointIds]]]
+    DependsOn: NetworkFirewall 
+
+
+  # Network Load Balancer
+  NetworkLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: MyNLB
+      Subnets:
+        - !Ref PrivateSubnet1
+        # - !Ref PrivateSubnet2
+      Type: network
+
+  # Target Group for NLB
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: MyTargetGroup
+      VpcId: !Ref VPC
+      Protocol: TCP
+      Port: 8080
+
+
+  NatGateway:
+    Type: 'AWS::EC2::NatGateway'
+    Properties:
+      SubnetId:
+        Ref: PrivateSubnet1
+      AllocationId:
+        'Fn::GetAtt':
+          - NatGw1ElasticIP
+          - AllocationId
+      Tags:
+        - Key: Name
+          Value: NATGWA
+  NatGw1ElasticIP:
+    Type: 'AWS::EC2::EIP'
+    Properties:
+      Domain: vpc
+
+
+Outputs:
+
+  NetworkLoadBalancerDNS:
+    Description: DNS Name of the Network Load Balancer
+    Value: !GetAtt NetworkLoadBalancer.DNSName
