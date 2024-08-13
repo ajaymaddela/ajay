@@ -440,3 +440,29 @@ Outputs:
   NetworkLoadBalancerDNS:
     Description: DNS Name of the Network Load Balancer
     Value: !GetAtt NetworkLoadBalancer.DNSName
+
+
+
+
+
+ NetworkLoadBalancerTargetGroup1:
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+    Properties:
+      TargetType: ip
+      VpcId: '!Ref VPC'
+      Protocol: TCP
+      Port: 80
+      Targets:
+        - Id: 10.0.10.4
+          Port: 80
+          AvailabilityZone: 'us-east-1a'
+        - Id: 10.0.13.1
+          Port: 80
+          AvailabilityZone: 'us-east-1a'
+      HealthCheckEnabled: true
+      HealthCheckIntervalSeconds: 30
+      HealthCheckProtocol: TCP
+      HealthCheckPort: 80
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 3
