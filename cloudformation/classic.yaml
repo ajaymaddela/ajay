@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Classic Load Balancer with Secure Listener
+Resources:
+  MyLoadBalancer:
+    Type: 'AWS::ElasticLoadBalancing::LoadBalancer'
+    Properties:
+      AvailabilityZones:
+        - "us-east-1a"
+      CrossZone: "true"
+      Listeners:
+        - InstancePort: 80
+          InstanceProtocol: "HTTP"
+          LoadBalancerPort: 80
+          Protocol: "HTTP"
+      HealthCheck:
+        Target: "HTTP:80/"
+        HealthyThreshold: 2
+        UnhealthyThreshold: 3
+        Interval: 10
+        Timeout: 5
+      Instances:
+        - "i-08dbad55ce36e0191"
+      Scheme: "internet-facing"
+
+
+
+
+
+
+      #   PolicyNames:
+      #   - "My-SSLNegotiation-Policy"
+      #   SSLCertificateId: "arn:aws:iam::123456789012:server-certificate/my-server-certificate"
+
+      # Policies:
+      #   - PolicyName: "My-SSLNegotiation-Policy"
+      #     PolicyType: "SSLNegotiationPolicyType"
+      #     Attributes:
+      #       - Name: "Reference-Security-Policy"
+      #         Value: "ELBSecurityPolicy-TLS-1-2-2017-01"

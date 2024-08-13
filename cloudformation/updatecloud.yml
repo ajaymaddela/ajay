@@ -16,7 +16,7 @@ Parameters:
   AMIID:
     Description: The AMI ID to use for the instance
     Type: AWS::EC2::Image::Id
-    Default: ami-0bc9a774360c9d6c7
+    Default: ami-012a3705f5e65affd
     ConstraintDescription: Must be a valid AMI ID.
 
 
@@ -349,7 +349,7 @@ Resources:
       # SubnetId: !GetAtt PrivateSubnet3.SubnetId
       # SecurityGroups:
       #  - !Ref SecurityGroup1
-      KeyName: cloudform
+      KeyName: ami
       NetworkInterfaces:
         - DeleteOnTermination: true
           DeviceIndex: 0
@@ -359,6 +359,8 @@ Resources:
 
 
  
+
+
 
   # Network Load Balancer
   NetworkLoadBalancer:
@@ -370,9 +372,25 @@ Resources:
       Name: MyNLB
       SecurityGroups:
         - !Ref SecurityGroup1 
-      Subnets:
-        - !Ref PublicSubnet1
-        # - !Ref PrivateSubnet3
+      SubnetMappings:
+        - SubnetId: !GetAtt PublicSubnet1.SubnetId 
+          AllocationId: !GetAtt NetworkIP.AllocationId
+      # Subnets:
+      #   - !Ref PublicSubnet1 
+          
+    DependsOn: IGWAttachment
+ 
+
+  #  AllocationId: !GetAtt NetworkIP.AllocationId
+  # AllocationId:
+  #           'Fn::GetAtt':
+  #             - NetworkIP
+  #             - AllocationId
+
+  NetworkIP:
+    Type: 'AWS::EC2::EIP'
+    Properties:
+      Domain: vpc
       
       
 
