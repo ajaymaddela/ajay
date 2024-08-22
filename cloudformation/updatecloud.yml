@@ -148,6 +148,10 @@ Resources:
           ToPort: 0
           IpProtocol: tcp
           CidrIp: 0.0.0.0/0
+        - FromPort: 0
+          ToPort: 65535
+          IpProtocol: tcp
+          CidrIp: 10.0.0.0/16
         - FromPort: 80
           ToPort: 80
           IpProtocol: tcp

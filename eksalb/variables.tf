@@ -1,6 +1,6 @@
 variable "cluster_name" {
   type = string
-  default = "md-prod"
+  default = "m-prod"
 }
 
 variable "cluster_version" {
@@ -10,12 +10,12 @@ variable "cluster_version" {
 
 variable "eks_public_subnets" {
   type = list(string)
-  default = ["subnet-012d74719b30ef5aa", "subnet-0dbf590095292076c"]
+  default = ["subnet-xxxxxxxxxxxxx", "subnet-xxxxxxxxxxxxx"]
 }
 
 variable "eks_vpc_id" {
   type = string
-  default = "vpc-0ea636f8cc198e09b"
+  default = "vpc-xxxxxxxxxxxxx"
 }
 variable "main-region" {
   type       = string
