@@ -1,5 +1,5 @@
 # Configuration for first set of subdomains
-DOMAIN="interfi.com"
+DOMAIN="intefi.com"
 SUBDOMAIN1="sub.$DOMAIN"
 NEW_TARGET1="ajay.$DOMAIN"
 HOSTED_ZONE_ID="Z100798133NVO9C89OXDN"
