@@ -1,0 +1,21 @@
+# Configuration for first set of subdomains
+DOMAIN="interfi.com"
+SUBDOMAIN1="sub.$DOMAIN"
+NEW_TARGET1="ajay.$DOMAIN"
+HOSTED_ZONE_ID="Z100798133NVO9C89OXDN"
+PROFILES=("sandbox")
+
+# Configuration for second set of subdomains
+SUBDOMAIN2="latest.$DOMAIN"
+NEW_TARGET2="ajay.$DOMAIN"
+
+# Configuration for third set of subdomains
+SUBDOMAIN3="lat.$DOMAIN"
+NEW_TARGET3="ajay.$DOMAIN"
+
+# Configuration for another account
+#DOMAIN1="ajay.com"
+#SUBDOMAIN8="new.$DOMAIN1"
+#NEW_TARGET8="latestajay.$DOMAIN1"
+#HOSTED_ZONE_ID1="Z08158762B3Z7JDEZXZZ3"
+#PROFILES1=("testing")
