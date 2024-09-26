@@ -47,18 +47,14 @@ get_current_record_value() {
   fi
 }
 
-# Function to delete existing records
+# Function to delete existing alias records
 delete_existing_records() {
   local profile=$1
   local subdomain=$2
-  local hosted_zone_id=$3
+  local existing_record_value=$3
 
-  # Get the existing A record value
-  existing_record_value=$(get_current_record_value "$profile" "$subdomain" "$hosted_zone_id")
-
-  # If there's an existing alias record, delete it
-  if [ -n "$existing_record_value" ]; then
-    CHANGE_BATCH=$(cat <<EOF
+  # Only delete alias records
+  CHANGE_BATCH=$(cat <<EOF
 {
   "Changes": [
     {
@@ -76,15 +72,12 @@ delete_existing_records() {
   ]
 }
 EOF
-    )
-    aws route53 change-resource-record-sets \
-        --hosted-zone-id "$hosted_zone_id" \
-        --change-batch "$CHANGE_BATCH" \
-        --profile "$profile"
-    echo "Existing alias A record for $subdomain deleted in profile $profile."
-  else
-    echo "No existing record found for $subdomain in profile $profile."
-  fi
+  )
+  aws route53 change-resource-record-sets \
+      --hosted-zone-id "$HOSTED_ZONE_ID" \
+      --change-batch "$CHANGE_BATCH" \
+      --profile "$profile"
+  echo "Existing alias A record for $subdomain deleted in profile $profile."
 }
 
 subdomain_list=(subdomain1 subdomain2 subdomain3)
@@ -112,12 +105,20 @@ for subdomain_key in "${subdomain_list[@]}"; do
     elif [ "$CURRENT_TARGET" == "$NEW_TARGET" ]; then
       echo "Record for $SUBDOMAIN already exists with target $NEW_TARGET in profile $PROFILE"
     else 
-      if [-n "$standard_record_value" ]; then
-      if [ -n "$CURRENT_TARGET" ] && [ "$CURRENT_TARGET" != "$NEW_TARGET" ]; then
-      # Delete existing record
-         delete_existing_records "$PROFILE" "$SUBDOMAIN" "$HOSTED_ZONE_ID"
+      # Get the standard record value
+      
+      
+
+      record_type=$(aws route53 list-resource-record-sets --hosted-zone-id "$HOSTED_ZONE_ID" --query "ResourceRecordSets[?Name == \`
+"${SUBDOMAIN}".\`].Type" --output text --profile "$PROFILE")
+      # If standard_record_value is found, skip deletion of alias records
+      if [ $record_type == "A" ]; then
+        # Existing record is an alias, delete it
+        delete_existing_records "$PROFILE" "$SUBDOMAIN" "$CURRENT_TARGET"
       fi
-      # After deletion, create the new CNAME record
+      
+
+      # Create the new CNAME record, regardless of deletion
       CHANGE_BATCH=$(cat <<EOF
 {
   "Changes": [

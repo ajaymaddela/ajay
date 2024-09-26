@@ -112,12 +112,19 @@ for subdomain_key in "${subdomain_list[@]}"; do
     elif [ "$CURRENT_TARGET" == "$NEW_TARGET" ]; then
       echo "Record for $SUBDOMAIN already exists with target $NEW_TARGET in profile $PROFILE"
     else 
-      if [-n "$standard_record_value" ]; then
-      if [ -n "$CURRENT_TARGET" ] && [ "$CURRENT_TARGET" != "$NEW_TARGET" ]; then
-      # Delete existing record
-         delete_existing_records "$PROFILE" "$SUBDOMAIN" "$HOSTED_ZONE_ID"
+      # Get the standard record value
+      standard_record_value=$(get_current_record_value "$PROFILE" "$SUBDOMAIN" "$HOSTED_ZONE_ID")
+      
+      # If standard_record_value is found, skip deletion
+      if [ -z "$standard_record_value" ]; then
+        if [ -n "$alias_record_dns_name" ] && [ "$CURRENT_TARGET" != "$NEW_TARGET" ]; then
+          # Delete existing record
+          delete_existing_records "$PROFILE" "$SUBDOMAIN" "$HOSTED_ZONE_ID"
+        fi
       fi
-      # After deletion, create the new CNAME record
+      
+
+      # After deletion (or if no deletion was needed), create the new CNAME record
       CHANGE_BATCH=$(cat <<EOF
 {
   "Changes": [
@@ -144,5 +151,6 @@ EOF
           --profile "$PROFILE"
       echo "DNS record updated for $SUBDOMAIN to point to $NEW_TARGET in profile $PROFILE"
     fi
+  
   done
 done

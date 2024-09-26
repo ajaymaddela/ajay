@@ -1,21 +1,25 @@
 # Configuration for first set of subdomains
-DOMAIN="intefi.com"
-SUBDOMAIN1="sub.$DOMAIN"
-NEW_TARGET1="ajay.$DOMAIN"
-HOSTED_ZONE_ID="Z100798133NVO9C89OXDN"
+DOMAIN="ajay.com"
+SUBDOMAIN1="lat.$DOMAIN"
+NEW_TARGET1="liv.$DOMAIN"
+HOSTED_ZONE_ID="Z04488721VEZEIBAD9IXA"
 PROFILES=("sandbox")
 
 # Configuration for second set of subdomains
-SUBDOMAIN2="latest.$DOMAIN"
-NEW_TARGET2="ajay.$DOMAIN"
+SUBDOMAIN2="new.$DOMAIN"
+NEW_TARGET2="healthy.$DOMAIN"
 
 # Configuration for third set of subdomains
-SUBDOMAIN3="lat.$DOMAIN"
-NEW_TARGET3="ajay.$DOMAIN"
+SUBDOMAIN3="latest.$DOMAIN"
+NEW_TARGET3="energy.$DOMAIN"
 
 # Configuration for another account
-#DOMAIN1="ajay.com"
+#DOMAIN1="anji.com"
 #SUBDOMAIN8="new.$DOMAIN1"
 #NEW_TARGET8="latestajay.$DOMAIN1"
 #HOSTED_ZONE_ID1="Z08158762B3Z7JDEZXZZ3"
 #PROFILES1=("testing")
+
+  
+
+#aws route53 list-resource-record-sets --hosted-zone-id Z04488721VEZEIBAD9IXA --query "ResourceRecordSets[?Name == 'ajay.com.']"
