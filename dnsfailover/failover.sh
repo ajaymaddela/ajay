@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configuration
-DOMAIN="interfi.com"
+DOMAIN="inter.com"
 SUBDOMAIN1="sub.$DOMAIN"
 NEW_TARGET1="new.$DOMAIN"
 HOSTED_ZONE_ID="Z03287222VWUPH1Z6FJ71" # Replace with your hosted zone ID
