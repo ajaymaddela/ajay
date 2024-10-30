@@ -18,10 +18,10 @@ resource "aws_ami_from_instance" "docker_ami" {
   name               = var.ami_name
 }
 
-resource "aws_ami_launch_permission" "example" {
-  image_id   = aws_ami_from_instance.docker_ami.id
-  account_id = var.account_ids # Replace with actual AWS account IDs
-}
+# resource "aws_ami_launch_permission" "example" {
+#   image_id   = aws_ami_from_instance.docker_ami.id
+#   account_id = var.account_ids # Replace with actual AWS account IDs
+# }
 
 output "instance_id" {
   value = aws_instance.ecs_instance.id
