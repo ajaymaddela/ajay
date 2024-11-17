@@ -1,0 +1,60 @@
+---
+- name: Install Docker, Terraform, aws-cli and azure-cli on Amazon Linux
+  hosts: all
+  become: true
+  vars:
+    ec2_username: ec2-user
+  tasks:
+    - name: Install Docker
+      yum:
+        name: docker
+        state: present
+    - name: Add ec2-user to the Docker group
+      ansible.builtin.user:
+        name: "{{ ec2_username }}"
+        groups: docker
+        append: yes
+    - name: Ensure Docker service is started and enabled
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+    - name: Install yum-utils package
+      yum:
+        name: yum-utils
+        state: present
+    - name: Add HashiCorp repository using yum-config-manager
+      command: yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+      args:
+        creates: /etc/yum.repos.d/hashicorp.repo  # Avoids re-adding if the repo already exists
+      register: add_repo_output
+    - name: Confirm that the HashiCorp repository was added
+      debug:
+        msg: "Repository added successfully: {{ add_repo_output.stdout }}"
+    - name: Install Terraform
+      yum:
+        name: terraform
+        state: present
+    - name: Import Microsoft GPG key
+      rpm_key:
+        state: present
+        key: https://packages.microsoft.com/keys/microsoft.asc
+      register: ajay_output
+    - name: check whether it was added
+      debug:
+        msg: "gpg keys got added: {{ ajay_output }}"
+    - name: install the azurecli rpm from a remote repo
+      dnf:
+        name: 'https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm'
+        state: present
+    - name: install the azurecli rpm from a remote repo
+      dnf:
+        name: azure-cli
+        state: present
+    - name: Unzip the file on the remote machine
+      ansible.builtin.unarchive:
+        src: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+        dest: /home/ec2-user/
+        remote_src: yes
+    - name: install aws cli
+      command: './aws/install'
