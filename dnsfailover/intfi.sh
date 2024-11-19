@@ -7,7 +7,7 @@ CNAME_RECORDS_FILE="Cname_records.txt"
 # Output files for failed attempts
 A_FAIL_FILE="Afail.txt"
 CNAME_FAIL_FILE="Cnamefail.txt"
-INTRAFI_FILE="Intf.txt"
+INTFI_FILE="Intf.txt"
 
 # Clear existing fail files
 > "$A_FAIL_FILE"
