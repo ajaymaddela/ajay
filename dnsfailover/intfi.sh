@@ -7,12 +7,12 @@ CNAME_RECORDS_FILE="Cname_records.txt"
 # Output files for failed attempts
 A_FAIL_FILE="Afail.txt"
 CNAME_FAIL_FILE="Cnamefail.txt"
-INTRAFI_FILE="IntraFi.txt"
+INTRAFI_FILE="Intf.txt"
 
 # Clear existing fail files
 > "$A_FAIL_FILE"
 > "$CNAME_FAIL_FILE"
-> "$INTRAFI_FILE"
+> "$INTfi_FILE"
 
 # Max concurrent jobs
 MAX_JOBS=10
@@ -59,7 +59,7 @@ check_ssl() {
 
     # Check for specific issuers
     if echo "$ISSUER" | grep -qE "IntraFi|Digicert|Let's Encrypt|GoDaddy.com"; then
-        echo "${DOMAIN}" >> "$INTRAFI_FILE"
+        echo "${DOMAIN}" >> "$INTfi_FILE"
     fi
 }
 

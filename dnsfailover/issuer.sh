@@ -7,14 +7,14 @@ CNAME_RECORDS_FILE="Cname_records.txt"
 # Output files for failed attempts
 A_FAIL_FILE="Afail.txt"
 CNAME_FAIL_FILE="Cnamefail.txt"
-INTRAFI_FILE="IntraFi.txt"
-INTRAFI_FILE1="IntraFi1.txt"
+INTFI_FILE="Intfi.txt"
+INTFI_FILE1="Intfi.txt"
 
 # Clear existing fail files
 > "$A_FAIL_FILE"
 > "$CNAME_FAIL_FILE"
-> "$INTRAFI_FILE"
-> "$INTRAFI_FILE1"
+> "$INTfi_FILE"
+> "$INTfi_FILE1"
 # Max concurrent jobs
 MAX_JOBS=10
 declare -a pids
@@ -68,11 +68,11 @@ check_ssl() {
     fi
 
     # Check for specific issuers
-    if echo "$ISSUER" | grep -qE "IntraFi|Digicert|Let's Encrypt"; then
-        echo "${DOMAIN}" >> "$INTRAFI_FILE"
+    if echo "$ISSUER" | grep -qE "Digicert|Let's Encrypt"; then
+        echo "${DOMAIN}" >> "$INTFI_FILE"
     fi 
     if echo "$ISSUER" | grep -qE "GoDaddy.com"; then
-        echo "${DOMAIN}" >> "$INTRAFI_FILE1"
+        echo "${DOMAIN}" >> "$INTFI_FILE1"
     fi
 }
 
