@@ -1,0 +1,83 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: efs-pv
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: <EFS-File-System-ID>  # Replace with your actual EFS File System ID
+
+
+--- 
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: efs-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+
+
+#kubectl apply -f efs-pv.yaml
+#kubectl apply -f efs-pvc.yaml
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgadmin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pgadmin
+  template:
+    metadata:
+      labels:
+        app: pgadmin
+    spec:
+      containers:
+      - name: pgadmin
+        image: dpage/pgadmin4
+        ports:
+        - containerPort: 80
+        env:
+        - name: PGADMIN_DEFAULT_EMAIL
+          value: "admin@admin.com"
+        - name: PGADMIN_DEFAULT_PASSWORD
+          value: "admin"
+        volumeMounts:
+        - name: efs-storage
+          mountPath: /var/lib/pgadmin
+      volumes:
+      - name: efs-storage
+        persistentVolumeClaim:
+          claimName: efs-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgadmin-service
+spec:
+  selector:
+    app: pgadmin
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
+
+
+#Use the default login credentials (set in the deployment YAML):
+#Email: admin@admin.com
+#Password: admin

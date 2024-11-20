@@ -1,0 +1,45 @@
+--- 
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ajay123
+provisioner: file.csi.azure.com
+parameters:
+  # The Azure storage account type
+  skuName: Standard_LRS
+  # The name of the Azure Storage Account (can also be managed dynamically)
+  storageAccount: ltqtajay12   # Replace with your Azure storage account name
+reclaimPolicy: Delete  # Retain the volume after the PVC is deleted (can be changed to 'Delete' if desired)
+volumeBindingMode: Immediate
+allowVolumeExpansion: true 
+
+
+--- 
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: azurepvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: azurefile-csi
+
+--- 
+apiVersion: v1
+kind: Pod
+metadata:
+  name: azurefile-csi-pod
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      volumeMounts:
+        - mountPath: /mnt/azure
+          name: azurefile-csi-volume
+  volumes:
+    - name: azurefile-csi-volume
+      persistentVolumeClaim:
+        claimName: azurepvc
