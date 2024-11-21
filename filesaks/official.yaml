@@ -1,0 +1,102 @@
+# existing storage account and file share
+---
+# Create a StorageClass object pointing to the existing Storage Account
+# Remember: that the Storage account must be in the same Resource Group where the AKS cluster is deployed
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: azurefile1
+provisioner: file.csi.azure.com
+mountOptions:
+  - dir_mode=0777
+  - file_mode=0777
+parameters:
+  storageAccount: ltqtajay12
+  location: eastus
+
+---
+# Create a Secret to hold the name and key of the Storage Account
+# Remember: values are base64 encoded
+apiVersion: v1
+kind: Secret
+metadata:
+  name: azurefile-secret
+type: Opaque
+data:
+  azurestorageaccountname: bHRxdGFqYXkxMg==
+  azurestorageaccountkey: R3o2N0hLWGpwRnVlYnhxaDgyNTBWZVEwYlVUaGRwa2VXUlJpZGhsaXlPTFFrUDNwOS96c2FBQVMrN1RtdlJMVUdSQkNFU0w1Rk5mbStBU3RMZkNQL3c9PQ==
+  #Gz67HKXjpFuebxqh8250VeQ0bUThdpkeWRRidhliyOLQkP3p9/zsaAAS+7TmvRLUGRBCESL5FNfm+AStLfCP/w==
+
+---
+# Create a persistent volume, with the corresponding StorageClass and the reference to the Azure File secret.
+# Remember: Create the share in the storage account otherwise the pods will fail with a "No such file or directory"
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nginx-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: azurefile1
+  azureFile:
+    secretName: azurefile-secret
+    shareName: ajjayy
+    readOnly: false
+  mountOptions:
+  - dir_mode=0777
+  - file_mode=0777
+  - uid=1000
+  - gid=1000
+
+---
+# Create a PersistentVolumeClaim referencing the StorageClass and the volume
+# Remember: this is a static scenario. The volume was created in the previous step.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nginx-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce  
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: azurefile1
+  volumeName: nginx-pv
+
+
+---
+# Deploy an nginx mounting a volume and referencing the persistent volume claim
+# Remember: using pvc decouples your deployment from the volume implementations
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx-storage  # This selector should match the label in the template below
+  template:
+    metadata:
+      labels:
+        app: nginx-storage  # This label must match the selector
+    spec:
+      containers:
+      - name: nginx-pod
+        image: nginx:1.15.5
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        volumeMounts:
+        - mountPath: "/mnt/azure"
+          name: volume
+      volumes:
+        - name: volume
+          persistentVolumeClaim:
+            claimName: nginx-pvc

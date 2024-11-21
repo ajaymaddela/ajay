@@ -1,0 +1,70 @@
+# existing efs using in storage class if not using existing efs it will automatically creates a new efs using storage class
+
+--- 
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: efs-scs
+provisioner: efs.csi.aws.com
+parameters:
+  provisioningMode: efs-ap
+  fileSystemId: fs-0eb9f2570f41cba6f
+  directoryPerms: "700"
+  gidRangeStart: "1000" # optional
+  gidRangeEnd: "2000" # optional
+  basePath: "/dynamic_provisioning" # optional
+  subPathPattern: "${.PVC.namespace}/${.PVC.name}" # optional
+  ensureUniqueDirectory: "true" # optional
+  reuseAccessPoint: "false" # optional
+
+# pv is not required
+# ---
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   name: efs-pv1
+# spec:
+#   capacity:
+#     storage: 5Gi
+#   volumeMode: Filesystem
+#   accessModes:
+#     - ReadWriteMany
+#   persistentVolumeReclaimPolicy: Retain
+#   storageClassName: efs-sc
+#   csi:
+#     driver: efs.csi.aws.com
+#     volumeHandle: fs-0eb9f2570f41cba6f
+
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: efs-claim1
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-scs
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: efs-app
+spec:
+  containers:
+    - name: app
+      image: centos
+      command: ["/bin/sh"]
+      args: ["-c", "while true; do echo $(date -u) >> /data/out; sleep 5; done"]
+      volumeMounts:
+        - name: persistent-storage
+          mountPath: /data
+  volumes:
+    - name: persistent-storage
+      persistentVolumeClaim:
+        claimName: efs-claim1
+
+  

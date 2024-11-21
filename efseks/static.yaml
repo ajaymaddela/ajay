@@ -1,0 +1,45 @@
+# using efs in the pv instead of storage class 
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: efs-pv
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: fs-0eb9f2570f41cba6f
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: afs-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: efs-demo-pod
+spec:
+  containers:
+  - name: efs-demo-container
+    image: nginx  # Replace with your application container image
+    volumeMounts:
+    - mountPath: /mnt/efs  # The path inside the container where the volume will be mounted
+      name: efs-storage
+  volumes:
+  - name: efs-storage
+    persistentVolumeClaim:
+      claimName: afs-pvc
