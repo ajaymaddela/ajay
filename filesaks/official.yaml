@@ -23,8 +23,8 @@ metadata:
   name: azurefile-secret
 type: Opaque
 data:
-  azurestorageaccountname: bHRxdGFqYXkxMg==
-  azurestorageaccountkey: R3o2N0hLWGpwRnVlYnhxaDgyNTBWZVEwYlVUaGRwa2VXUlJpZGhsaXlPTFFrUDNwOS96c2FBQVMrN1RtdlJMVUdSQkNFU0w1Rk5mbStBU3RMZkNQL3c9PQ==
+  # azurestorageaccountname: bHRxdGFqYXkxMg==
+  # azurestorageaccountkey: R3o2N0hLWGpwRnVlYnhxaDgyNTBWZVEwYlVUaGRwa2VXUlJpZGhsaXlPTFFrUDNwOS96c2FBQVMrN1RtdlJMVUdSQkNFU0w1Rk5mbStBU3RMZkNQL3c9PQ==
   #Gz67HKXjpFuebxqh8250VeQ0bUThdpkeWRRidhliyOLQkP3p9/zsaAAS+7TmvRLUGRBCESL5FNfm+AStLfCP/w==
 
 ---
