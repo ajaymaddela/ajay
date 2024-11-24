@@ -1,0 +1,26 @@
+stages:
+  - clone
+  - build
+
+clone_repository:
+  stage: clone
+  tags:
+    - ajay
+  script:
+    - git clone https://github.com/spring-projects/spring-petclinic.git
+    - echo "Repository cloned successfully"
+  artifacts:
+    paths:
+      - spring-petclinic/  # Persist the cloned repository to be used in the next job
+
+build_project:
+  stage: build
+  tags:
+    - ajay
+  script:
+    - cd spring-petclinic
+    - mvn clean package
+    - echo "Build completed successfully"
+    - pwd
+  dependencies:
+    - clone_repository  # Ensures the build job waits for the clone job's artifacts
