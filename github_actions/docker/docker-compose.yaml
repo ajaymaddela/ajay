@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx_server
+    ports:
+      - "8080:80" # Maps port 8080 on the host to port 80 in the container
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro # Custom NGINX configuration
+      - ./html:/usr/share/nginx/html:ro # Mount static HTML files
+    depends_on:
+      - db # Ensures MySQL starts before NGINX
+
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: PA%%w0rdr* # Replace with a strong password
+      MYSQL_DATABASE: example_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: PA%%w0rdr* # Replace with a strong password
+    ports:
+      - "3306:3306" # Maps port 3306 for MySQL access
+    volumes:
+      - db_data:/var/lib/mysql # Persistent data storage
+
+volumes:
+  db_data:
