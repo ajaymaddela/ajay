@@ -1,7 +1,9 @@
-# a=2.5
-# for i in a,b,c:
-#     print(i)
-# print(int(a))
+a=2.5
+b=3.5
+c=4.5
+for i in a,b,c:
+    print(i)
+print(int(a))
 
 # a=2
 # print(float(a))
