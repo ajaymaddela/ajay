@@ -1,0 +1,14 @@
+variables:
+  KUBE_CONTEXT: ajay3961047/ajaymaddela:my-agent2
+stages:
+  - deploy
+deploy:
+  stage: deploy
+  image:
+    name: bitnami/kubectl:latest
+    entrypoint: ['']
+  before_script:
+    - kubectl config get-contexts
+    - kubectl config use-context "$KUBE_CONTEXT"
+  script:
+    - kubectl get ns
