@@ -136,7 +136,7 @@ argocd login http://74.179.232.45/ --username admin --password cLO5nHEyCiuUGfeC
 ```
 argocd repo add https://gitlab.com/ajay3961047/ajaymaddela.git \
   --username ajay3961047 \
-  --password glpat-p7pd5xVziD8AQ22ZFFdk \
+  --password <glpat-p7pd5xVziD8AQ25dksm> \
   --name gitlab-repo
 ```
 
