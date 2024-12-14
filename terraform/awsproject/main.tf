@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "us-west-1"
+  region = "us-east-1"
 }
 
 resource "aws_iam_role" "NodeGroupRole" {
@@ -102,10 +102,10 @@ data "aws_availability_zones" "available" {
   }
 }
 resource "aws_eks_cluster" "EKSCluster" {
-  name     = "EKSCluster"
+  name     = "EKSCluster-ajay"
   role_arn = aws_iam_role.EKSClusterRole.arn
   vpc_config {
-    subnet_ids = aws_subnet.eks_private.*.id
+    subnet_ids = aws_subnet.eks_public.*.id
     
     
   }
@@ -117,6 +117,20 @@ resource "aws_eks_cluster" "EKSCluster" {
     aws_iam_role_policy_attachment.AmazonEC2ContainerRegistryReadOnly,
   ]
 }
+resource "aws_eks_addon" "example" {
+  cluster_name = aws_eks_cluster.EKSCluster.name
+  addon_name   = "vpc-cni"
+}
+
+resource "aws_eks_addon" "example1" {
+  cluster_name = aws_eks_cluster.EKSCluster.name
+  addon_name   = "coredns"
+}
+
+resource "aws_eks_addon" "example2" {
+  cluster_name = aws_eks_cluster.EKSCluster.name
+  addon_name   = "kube-proxy"
+}
 
 resource "aws_eks_node_group" "NodeGroup1" {
   cluster_name    = aws_eks_cluster.EKSCluster.name
@@ -124,6 +138,10 @@ resource "aws_eks_node_group" "NodeGroup1" {
   node_role_arn   = aws_iam_role.NodeGroupRole.arn
   subnet_ids      = aws_subnet.eks_public.*.id
    instance_types = ["t2.micro"]
+  launch_template {
+    id      = aws_launch_template.eks_launch_template.id
+    version = "$Latest"
+  }
   scaling_config {
     desired_size = 1
     max_size     = 4
@@ -243,3 +261,23 @@ resource "aws_security_group" "node_group" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
+# resource "aws_launch_template" "eks_launch_template" {
+#   name          = "eks-launch-template"
+#   image_id      = "ami-0030945a5e6d38ef4"  # Update this to the correct EKS AMI
+#   # Update the instance type as needed
+
+#   # Use security_group_ids instead of security_group_names for the launch template
+#   #security_group_names = [aws_security_group.eks_sg.name]
+#   vpc_security_group_ids = [aws_security_group.node_group.id]
+
+ 
+#   user_data = base64encode(<<-EOF
+#        #!/bin/bash
+#        /etc/eks/bootstrap.sh ${aws_eks_cluster.EKSCluster.name}
+#       EOF
+#   )
+#   lifecycle {
+#     create_before_destroy = false
+#   }
+# }
