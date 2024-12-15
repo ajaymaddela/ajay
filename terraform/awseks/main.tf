@@ -146,16 +146,18 @@ resource "aws_eks_cluster" "EKSCluster" {
 resource "aws_eks_addon" "vpc_cni" {
   cluster_name = aws_eks_cluster.EKSCluster.name
   addon_name   = "vpc-cni"
+  depends_on = [ aws_eks_cluster.EKSCluster ]
 }
 
-resource "aws_eks_addon" "coredns" {
-  cluster_name = aws_eks_cluster.EKSCluster.name
-  addon_name   = "coredns"
-}
+# resource "aws_eks_addon" "coredns" {
+#   cluster_name = aws_eks_cluster.EKSCluster.name
+#   addon_name   = "coredns"
+# }
 
 resource "aws_eks_addon" "kube_proxy" {
   cluster_name = aws_eks_cluster.EKSCluster.name
   addon_name   = "kube-proxy"
+  depends_on = [ aws_eks_cluster.EKSCluster ]
 }
 
 resource "aws_eks_node_group" "NodeGroup1" {
@@ -178,20 +180,23 @@ resource "aws_eks_node_group" "NodeGroup1" {
   depends_on = [
     aws_iam_role_policy_attachment.AmazonEKSWorkerNodePolicy,
     aws_iam_role_policy_attachment.AmazonEKS_CNI_Policy,
-    aws_iam_role_policy_attachment.AmazonEC2ContainerRegistryReadOnly
+    aws_iam_role_policy_attachment.AmazonEC2ContainerRegistryReadOnly,
+    aws_route_table_association.private
   ]
+  
 }
 
 # resource "aws_launch_template" "eks_launch_template" {
 #   name                 = "eks-launch-template"
-#   image_id             = "ami-0030945a5e6d38ef4" # Update this to the correct EKS AMI
+  
+#   # image_id             = "ami-0030945a5e6d38ef4" # Update this to the correct EKS AMI
 #   vpc_security_group_ids = [aws_security_group.node_group.id]
 
-#   user_data = base64encode(<<-EOF
-#        #!/bin/bash
-#        /etc/eks/bootstrap.sh ${aws_eks_cluster.EKSCluster.name}
-#       EOF
-#   )
+#   # user_data = base64encode(<<-EOF
+#   #      #!/bin/bash
+#   #      /etc/eks/bootstrap.sh ${aws_eks_cluster.EKSCluster.name}
+#   #     EOF
+#   # )
 
 #   lifecycle {
 #     create_before_destroy = false
@@ -211,6 +216,7 @@ resource "aws_nat_gateway" "nat_gw" {
   tags = {
     Name = "nat-gateway"
   }
+  depends_on = [ aws_eip.nat_eip ]
 }
 
 resource "aws_route_table" "private" {
@@ -224,10 +230,12 @@ resource "aws_route_table" "private" {
   tags = {
     Name = "private-route-table"
   }
+  depends_on = [ aws_eip.nat_eip ]
 }
 
 resource "aws_route_table_association" "private" {
   count          = length(aws_subnet.eks_private)
   subnet_id      = aws_subnet.eks_private[count.index].id
   route_table_id = aws_route_table.private.id
+  depends_on = [ aws_nat_gateway.nat_gw ]
 }

@@ -1,0 +1,21 @@
+assume role:  
+  id_tokens:
+    MY_OIDC_TOKEN:
+      aud: https://gitlab.com
+  before_script:
+    - mkdir -p ~/.aws
+    - echo "${MY_OIDC_TOKEN}" > /tmp/web_identity_token
+    - echo -e "[profile oidc]\nrole_arn=${ROLE_ARN}\nweb_identity_token_file=/tmp/web_identity_token" > ~/.aws/config
+  image:
+    name: "amazon/aws-cli:latest"
+    entrypoint: [""]
+  variables:
+    AWS_REGION: us-east-1
+    AWS_PROFILE: oidc
+    S3_BUCKET_NAME: "ajaymaddela-devops"
+  script:
+    - |
+        aws s3api create-bucket \
+          --bucket  "${S3_BUCKET_NAME}" \
+          --region "${AWS_REGION}" 
+            
