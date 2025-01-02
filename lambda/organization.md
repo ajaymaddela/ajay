@@ -1,3 +1,60 @@
+management account
+create a role in management account with name ajay-role-for-admin using for lambda function execution role
+select service as lambda
+attach policy like iam fullaccess
+organization readonlyaccess
+lambdabasic execution role
+
+attach policy to above created role (ajay-role-for-admin) with the rolename(testing) created with iam full access in child accounts
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "sts:AssumeRole",
+            "Resource": "arn:aws:iam::*:role/testing"
+        }
+    ]
+}
+```
+
+verify the  trust policy for role name for ajay-role-for-admin in management account 
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+```
+
+create another role in management account with name extra-role-for-ajay
+service lambda with policy iam full access and trust policy pointing to above role
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::684206014294:role/ajay-role-for-admin"
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+}
+```
+
+in management account create lambda function in management account use extra-role-for-ajay created for that role
+```
+
 import boto3
 from datetime import datetime, timedelta, timezone
 
@@ -12,8 +69,8 @@ def lambda_handler(event, context):
     # Get the current UTC time
     utc_now = datetime.utcnow().replace(tzinfo=timezone.utc)
 
-    # Set the inactivity threshold (45 days)
-    inactivity_threshold = utc_now - timedelta(days=45)
+    # Set the inactivity threshold (5 minutes for testing purposes)
+    inactivity_threshold = utc_now - timedelta(minutes=5)
 
     for account in accounts:
         account_id = account['Id']
@@ -63,7 +120,7 @@ def lambda_handler(event, context):
                     if not last_used_date:
                         last_used_date = create_date
 
-                    # Check if the key has not been used for 45 days
+                    # Check if the key has not been used for 5 minutes
                     if last_used_date < inactivity_threshold:
                         # Disable the access key if it's not already inactive
                         if status != 'Inactive':
@@ -82,3 +139,6 @@ def lambda_handler(event, context):
         'statusCode': 200,
         'body': 'Finished processing access keys for all accounts.'
     }
+```
+
+in child account create a role name testing and point to another aws account and mention organization account id and attach iam full access policy
