@@ -67,7 +67,7 @@ resource "aws_vpc" "eks_vpc" {
 }
 
 resource "aws_subnet" "eks_public" {
-  count                   = 2
+  count                   = 1
   availability_zone       = element(["us-east-1a", "us-east-1b"], count.index)
   cidr_block              = "10.0.${count.index}.0/24"
   map_public_ip_on_launch = true
@@ -105,7 +105,7 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table_association" "public" {
-  count          = 2
+  count          = 1
   subnet_id      = aws_subnet.eks_public[count.index].id
   route_table_id = aws_route_table.public.id
 }
@@ -165,16 +165,16 @@ resource "aws_eks_node_group" "NodeGroup1" {
   node_group_name = "NodeGroup12"
   node_role_arn   = aws_iam_role.NodeGroupRole.arn
   subnet_ids      = aws_subnet.eks_private.*.id
-  instance_types  = ["t2.micro"]
+  instance_types  = ["t2.medium"]
   
   ami_type = "AL2_x86_64"
   capacity_type = "ON_DEMAND"
   disk_size = "10"
 
   scaling_config {
-    desired_size = 1
+    desired_size = 2
     max_size     = 4
-    min_size     = 1
+    min_size     = 2
   }
 
   depends_on = [
@@ -238,4 +238,17 @@ resource "aws_route_table_association" "private" {
   subnet_id      = aws_subnet.eks_private[count.index].id
   route_table_id = aws_route_table.private.id
   depends_on = [ aws_nat_gateway.nat_gw ]
+}
+
+resource "aws_instance" "bastion_host" {
+  vpc_security_group_ids = [ aws_security_group.node_group.id ]
+  key_name = "dell"
+  associate_public_ip_address = true
+  subnet_id = aws_subnet.eks_public[0].id
+  tags = {
+    "env" = "ajay"
+  }
+  ami = "ami-0df8c184d5f6ae949"
+  instance_type = "t2.micro"
+  depends_on = [ aws_security_group.node_group ]
 }

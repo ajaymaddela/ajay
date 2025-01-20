@@ -1,7 +1,7 @@
 # export the variables
 
 KARPENTER_NAMESPACE=karpenter
-CLUSTER_NAME=md-prod
+CLUSTER_NAME=EKSCluster-ajay
 
 # getting region and account id
 
@@ -11,7 +11,7 @@ OIDC_ENDPOINT="$(aws eks describe-cluster --name "${CLUSTER_NAME}" \
     --query "cluster.identity.oidc.issuer" --output text)"
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' \
     --output text)
-K8S_VERSION=1.2
+K8S_VERSION=1.31
 ARM_AMI_ID="$(aws ssm get-parameter --name /aws/service/eks/optimized-ami/${K8S_VERSION}/amazon-linux-2-arm64/recommended/image_id --query Parameter.Value --output text)"
 AMD_AMI_ID="$(aws ssm get-parameter --name /aws/service/eks/optimized-ami/${K8S_VERSION}/amazon-linux-2/recommended/image_id --query Parameter.Value --output text)"
 GPU_AMI_ID="$(aws ssm get-parameter --name /aws/service/eks/optimized-ami/${K8S_VERSION}/amazon-linux-2-gpu/recommended/image_id --query Parameter.Value --output text)"
@@ -237,6 +237,8 @@ SECURITY_GROUPS="$(aws ec2 describe-launch-template-versions \
     --query 'LaunchTemplateVersions[0].LaunchTemplateData.[NetworkInterfaces[0].Groups||SecurityGroupIds]' \
     --output text)"
 
+# Execute below command
+
 aws ec2 create-tags \
     --tags "Key=karpenter.sh/discovery,Value=${CLUSTER_NAME}" \
     --resources "${SECURITY_GROUPS}"
@@ -266,6 +268,8 @@ kubectl edit configmap aws-auth -n kube-system
 # deploy karpenter
 
 export KARPENTER_VERSION="0.37.0"
+export KARPENTER_VERSION="1.1.1"
+
 
 
 # install karpenter using oci
@@ -280,7 +284,10 @@ helm template karpenter oci://public.ecr.aws/karpenter/karpenter --version "${KA
 
 
 
-# In karpenter.yaml add this section
+
+
+
+# In karpenter.yaml add this section find the karpenter deployment affinity rules and hard code nodgroup name
 affinity:
   nodeAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
@@ -300,6 +307,8 @@ affinity:
 
 
 
+
+
 # create namespace and get crds for karpenter
 kubectl create namespace "${KARPENTER_NAMESPACE}" || true
 kubectl create -f \
@@ -314,3 +323,60 @@ kubectl apply -f karpenter.yaml
 
 
 # then apply nodepool.yaml
+
+```
+cat <<EOF | envsubst | kubectl apply -f -
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: default
+spec:
+  template:
+    spec:
+      requirements:
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["amd64"]
+        - key: kubernetes.io/os
+          operator: In
+          values: ["linux"]
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["spot"]
+        - key: karpenter.k8s.aws/instance-category
+          operator: In
+          values: ["c", "m", "r"]
+        - key: karpenter.k8s.aws/instance-generation
+          operator: Gt
+          values: ["2"]
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
+      expireAfter: 720h # 30 * 24h = 720h
+  limits:
+    cpu: 1000
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 1m
+---
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: default
+spec:
+  amiFamily: AL2 # Amazon Linux 2
+  role: "KarpenterNodeRole-${CLUSTER_NAME}" # replace with your cluster name
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "${CLUSTER_NAME}" # replace with your cluster name
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "${CLUSTER_NAME}" # replace with your cluster name
+  amiSelectorTerms:
+    - id: "${ARM_AMI_ID}"
+    - id: "${AMD_AMI_ID}"
+#   - id: "${GPU_AMI_ID}" # <- GPU Optimized AMD AMI 
+#   - name: "amazon-eks-node-${K8S_VERSION}-*" # <- automatically upgrade when a new AL2 EKS Optimized AMI is released. This is unsafe for production workloads. Validate AMIs in lower environments before deploying them to production.
+EOF
+```
