@@ -1,11 +1,11 @@
 variable "cluster_name" {
   type = string
-  default = "m-prod"
+  default = "Eks-cluster-ajay"
 }
 
 variable "cluster_version" {
   type = string
-  default = "1.30"
+  default = "1.31"
 }
 
 variable "eks_public_subnets" {

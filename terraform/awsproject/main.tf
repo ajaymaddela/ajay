@@ -77,6 +77,7 @@ resource "aws_subnet" "eks_public" {
   tags = {
     Name        = "eks-public-${count.index}"
     Environment = "dev"
+    "kubernetes.io/role/elb" = "1"
   }
 }
 
@@ -90,6 +91,7 @@ resource "aws_subnet" "eks_private" {
   tags = {
     Name        = "eks-private-${count.index}"
     Environment = "dev"
+    "kubernetes.io/role/internal-elb" = "1"
   }
 }
 
@@ -122,10 +124,10 @@ resource "aws_eks_addon" "example" {
   addon_name   = "vpc-cni"
 }
 
-resource "aws_eks_addon" "example1" {
-  cluster_name = aws_eks_cluster.EKSCluster.name
-  addon_name   = "coredns"
-}
+# resource "aws_eks_addon" "example1" {
+#   cluster_name = aws_eks_cluster.EKSCluster.name
+#   addon_name   = "coredns"
+# }
 
 resource "aws_eks_addon" "example2" {
   cluster_name = aws_eks_cluster.EKSCluster.name

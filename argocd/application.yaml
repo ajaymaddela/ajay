@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-app
+  namespace: argocd  # Ensure ArgoCD is installed in this namespace
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/ajaymaddela/netflix  # Update this to your Git repository
+    targetRevision: main  # Branch or tag
+    path: deployment/k8s  # Path inside the repository where Kubernetes manifests are located
+  destination:
+    server: https://kubernetes.default.svc  # Deploys to the in-cluster Kubernetes API
+    namespace: my-app-namespace  # Namespace where the application will be deployed
+  syncPolicy:
+    automated:
+      prune: true  # Automatically remove resources not in Git
+      selfHeal: true  # Automatically sync changes
+    syncOptions:
+      - CreateNamespace=true  # Ensure namespace is created if it does not exist
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: testing
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/ajaymaddela/netflix
+    targetRevision: HEAD
+    path: deployment/k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default

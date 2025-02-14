@@ -37,7 +37,7 @@ module "eks" {
  # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
     disk_size      = 50
-    instance_types = ["t3.medium"]
+    instance_types = ["t2.medium"]
     key_name = "key"
   }
 
@@ -65,9 +65,9 @@ module "eks" {
   # manage_aws_auth_configmap = false
 
   tags = {
-    Environment = "prod"
+    Environment = "ajay"
     Terraform   = "true"
-    Project = "MD"
+    Project = "ajay"
   }
 }
 

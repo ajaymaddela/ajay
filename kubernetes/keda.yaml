@@ -1,0 +1,17 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: my-scaled-object  # Replace with your ScaledObject name
+  namespace: default # Replace with your namespace
+spec:
+  scaleTargetRef:
+    name: coffee  # Replace with the name of your Deployment
+  pollingInterval: 10      # KEDA checks metrics every 10 seconds
+  cooldownPeriod: 60       # Wait 60 seconds before scaling down
+  minReplicaCount: 1       # Minimum number of replicas
+  maxReplicaCount: 2     # Maximum number of replicas
+  triggers:
+    - type: cpu            # Scaling based on CPU utilization
+      metadata:
+        type: Utilization
+        value: "30"        # Target CPU utilization percentage (e.g., 75%)
