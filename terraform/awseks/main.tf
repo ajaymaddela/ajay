@@ -33,10 +33,10 @@ resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
   role       = aws_iam_role.NodeGroupRole.name
 }
 
-resource "aws_iam_role_policy_attachment" "admin" {
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
-  role = aws_iam_role.NodeGroupRole.name
-}
+# resource "aws_iam_role_policy_attachment" "admin" {
+#   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+#   role = aws_iam_role.NodeGroupRole.name
+# }
 
 
 resource "aws_iam_role" "EKSClusterRole" {
@@ -75,7 +75,7 @@ resource "aws_vpc" "eks_vpc" {
 }
 
 resource "aws_subnet" "eks_public" {
-  count                   = 1
+  count                   = 2
   availability_zone       = element(["us-west-1a", "us-west-1b"], count.index)
   cidr_block              = "10.0.${count.index}.0/24"
   map_public_ip_on_launch = true
@@ -282,64 +282,361 @@ resource "aws_instance" "bastion_host" {
   depends_on = [ aws_security_group.node_group ]
 }
 
-provider "kubernetes" {
-  host                   = aws_eks_cluster.EKSCluster.endpoint
-  token                  = data.aws_eks_cluster_auth.eks.token
-  cluster_ca_certificate = base64decode(aws_eks_cluster.EKSCluster.certificate_authority.0.data)
-}
 
-provider "helm" {
-  kubernetes {
-    host                   = aws_eks_cluster.EKSCluster.endpoint
-    token                  = data.aws_eks_cluster_auth.eks.token
-    cluster_ca_certificate = base64decode(aws_eks_cluster.EKSCluster.certificate_authority.0.data)
-  }
-}
+# # After clutser creation excute below on batsion host
 
-data "aws_eks_cluster_auth" "eks" {
-  name = aws_eks_cluster.EKSCluster.name
-}
+# provider "kubernetes" {
+#   host                   = data.aws_eks_cluster.cluster.endpoint
+#   token                  = data.aws_eks_cluster_auth.cluster.token
+#   cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
+# }
 
+# provider "helm" {
+#   kubernetes {
+#     host                   = data.aws_eks_cluster.cluster.endpoint
+#     token                  = data.aws_eks_cluster_auth.cluster.token
+#     cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
+#   }
+# }
 
+# # Variables
+# variable "aws_region" {
+#   description = "AWS region where resources will be created"
+#   type        = string
+#   default     = "us-west-1"
+# }
 
+# variable "cluster_name" {
+#   description = "Name of the EKS cluster"
+#   type        = string
+#   default     = "EKSCluster-ajay"
+# }
 
-# resource "helm_release" "lb" {
+# variable "environment" {
+#   description = "Environment name for resource tagging"
+#   type        = string
+#   default     = "production"
+# }
+
+# # Local variables for common tags
+# locals {
+#   common_tags = {
+#     Environment = var.environment
+#     ManagedBy   = "terraform"
+#     Cluster     = var.cluster_name
+#   }
+# }
+
+# # Data sources
+# data "aws_eks_cluster" "cluster" {
+#   name = var.cluster_name
+# }
+
+# data "aws_eks_cluster_auth" "cluster" {
+#   name = var.cluster_name
+# }
+
+# data "tls_certificate" "eks" {
+#   url = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
+# }
+
+# # Create OIDC Provider
+# resource "aws_iam_openid_connect_provider" "eks" {
+#   url             = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
+#   client_id_list  = ["sts.amazonaws.com"]
+#   thumbprint_list = [data.tls_certificate.eks.certificates[0].sha1_fingerprint]
+
+#   tags = local.common_tags
+# }
+
+# # Cluster Autoscaler IAM Role
+# resource "aws_iam_role" "cluster_autoscaler" {
+#   name = "${var.cluster_name}-autoscaler-role"
+
+#   assume_role_policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [{
+#       Effect = "Allow"
+#       Principal = {
+#         Federated = aws_iam_openid_connect_provider.eks.arn
+#       }
+#       Action = "sts:AssumeRoleWithWebIdentity"
+#       Condition = {
+#         StringEquals = {
+#           "${replace(data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer, "https://", "")}:sub" = "system:serviceaccount:kube-system:cluster-autoscaler"
+#         }
+#       }
+#     }]
+#   })
+
+#   tags = local.common_tags
+# }
+
+# # Cluster Autoscaler IAM Policy
+# resource "aws_iam_policy" "cluster_autoscaler" {
+#   name        = "${var.cluster_name}-autoscaler-policy"
+#   description = "Policy for Cluster Autoscaler"
+
+#   policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [{
+#       Effect = "Allow"
+#       Action = [
+#         "autoscaling:DescribeAutoScalingGroups",
+#         "autoscaling:DescribeAutoScalingInstances",
+#         "autoscaling:DescribeLaunchConfigurations",
+#         "autoscaling:DescribeScalingActivities",
+#         "autoscaling:DescribeTags",
+#         "autoscaling:SetDesiredCapacity",
+#         "autoscaling:TerminateInstanceInAutoScalingGroup",
+#         "ec2:DescribeLaunchTemplateVersions"
+#       ]
+#       Resource = "*"
+#     }]
+#   })
+
+#   tags = local.common_tags
+# }
+
+# resource "aws_iam_role_policy_attachment" "cluster_autoscaler" {
+#   policy_arn = aws_iam_policy.cluster_autoscaler.arn
+#   role       = aws_iam_role.cluster_autoscaler.name
+# }
+
+# # Load Balancer Controller IAM Role
+# resource "aws_iam_role" "aws_lb_controller" {
+#   name = "${var.cluster_name}-lb-controller-role"
+
+#   assume_role_policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [{
+#       Effect = "Allow"
+#       Principal = {
+#         Federated = aws_iam_openid_connect_provider.eks.arn
+#       }
+#       Action = "sts:AssumeRoleWithWebIdentity"
+#       Condition = {
+#         StringEquals = {
+#           "${replace(data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer, "https://", "")}:sub" = "system:serviceaccount:kube-system:aws-load-balancer-controller"
+#         }
+#       }
+#     }]
+#   })
+
+#   tags = local.common_tags
+# }
+
+# # Load Balancer Controller IAM Policy
+# resource "aws_iam_policy" "aws_lb_controller" {
+#   name        = "${var.cluster_name}-lb-controller-policy"
+#   description = "Policy for AWS Load Balancer Controller"
+
+#   policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [
+#       {
+#         Effect = "Allow"
+#         Action = [
+#           "iam:CreateServiceLinkedRole",
+#           "ec2:DescribeAccountAttributes",
+#           "ec2:DescribeAddresses",
+#           "ec2:DescribeAvailabilityZones",
+#           "ec2:DescribeInternetGateways",
+#           "ec2:DescribeVpcs",
+#           "ec2:DescribeSubnets",
+#           "ec2:DescribeSecurityGroups",
+#           "ec2:DescribeInstances",
+#           "ec2:DescribeNetworkInterfaces",
+#           "ec2:DescribeTags",
+#           "ec2:GetCoipPoolUsage",
+#           "ec2:DescribeCoipPools",
+#           "ec2:*",
+#           "elasticloadbalancing:DescribeLoadBalancers",
+#           "elasticloadbalancing:DescribeLoadBalancerAttributes",
+#           "elasticloadbalancing:DescribeListeners",
+#           "elasticloadbalancing:DescribeListenerCertificates",
+#           "elasticloadbalancing:DescribeSSLPolicies",
+#           "elasticloadbalancing:DescribeRules",
+#           "elasticloadbalancing:DescribeTargetGroups",
+#           "elasticloadbalancing:DescribeTargetGroupAttributes",
+#           "elasticloadbalancing:DescribeTargetHealth",
+#           "elasticloadbalancing:*"
+#         ]
+#         Resource = "*"
+#       },
+#       {
+#         Effect = "Allow"
+#         Action = [
+#           "cognito-idp:DescribeUserPoolClient",
+#           "acm:ListCertificates",
+#           "acm:DescribeCertificate",
+#           "iam:ListServerCertificates",
+#           "iam:GetServerCertificate",
+#           "waf-regional:GetWebACL",
+#           "waf-regional:GetWebACLForResource",
+#           "waf-regional:AssociateWebACL",
+#           "waf-regional:DisassociateWebACL",
+#           "wafv2:GetWebACL",
+#           "wafv2:GetWebACLForResource",
+#           "wafv2:AssociateWebACL",
+#           "wafv2:DisassociateWebACL",
+#           "shield:GetSubscriptionState",
+#           "shield:DescribeProtection",
+#           "shield:CreateProtection",
+#           "shield:DeleteProtection"
+#         ]
+#         Resource = "*"
+#       },
+#       {
+#         Effect = "Allow"
+#         Action = [
+#           "ec2:AuthorizeSecurityGroupIngress",
+#           "ec2:RevokeSecurityGroupIngress"
+#         ]
+#         Resource = "*"
+#       },
+#       {
+#         Effect = "Allow"
+#         Action = [
+#           "elasticloadbalancing:CreateListener",
+#           "elasticloadbalancing:DeleteListener",
+#           "elasticloadbalancing:CreateRule",
+#           "elasticloadbalancing:DeleteRule"
+#         ]
+#         Resource = "*"
+#       },
+#       {
+#         Effect = "Allow"
+#         Action = [
+#           "elasticloadbalancing:AddTags",
+#           "elasticloadbalancing:RemoveTags"
+#         ]
+#         Resource = [
+#           "arn:aws:elasticloadbalancing:*:*:targetgroup/*/*",
+#           "arn:aws:elasticloadbalancing:*:*:loadbalancer/net/*/*",
+#           "arn:aws:elasticloadbalancing:*:*:loadbalancer/app/*/*"
+#         ]
+#       },
+#       {
+#         Effect = "Allow"
+#         Action = [
+#           "elasticloadbalancing:ModifyLoadBalancerAttributes",
+#           "elasticloadbalancing:SetIpAddressType",
+#           "elasticloadbalancing:SetSecurityGroups",
+#           "elasticloadbalancing:SetSubnets",
+#           "elasticloadbalancing:DeleteLoadBalancer",
+#           "elasticloadbalancing:ModifyTargetGroup",
+#           "elasticloadbalancing:ModifyTargetGroupAttributes",
+#           "elasticloadbalancing:DeleteTargetGroup"
+#         ]
+#         Resource = "*"
+#       },
+#       {
+#         Effect = "Allow"
+#         Action = [
+#           "elasticloadbalancing:RegisterTargets",
+#           "elasticloadbalancing:DeregisterTargets"
+#         ]
+#         Resource = "arn:aws:elasticloadbalancing:*:*:targetgroup/*/*"
+#       },
+#       {
+#         Effect = "Allow"
+#         Action = [
+#           "elasticloadbalancing:SetWebAcl",
+#           "elasticloadbalancing:ModifyListener",
+#           "elasticloadbalancing:AddListenerCertificates",
+#           "elasticloadbalancing:RemoveListenerCertificates",
+#           "elasticloadbalancing:ModifyRule"
+#         ]
+#         Resource = "*"
+#       }
+#     ]
+#   })
+
+#   tags = local.common_tags
+# }
+
+# resource "aws_iam_role_policy_attachment" "aws_lb_controller" {
+#   policy_arn = aws_iam_policy.aws_lb_controller.arn
+#   role       = aws_iam_role.aws_lb_controller.name
+# }
+
+# # Kubernetes Service Accounts
+# resource "kubernetes_service_account" "cluster_autoscaler" {
+#   metadata {
+#     name      = "cluster-autoscaler"
+#     namespace = "kube-system"
+#     annotations = {
+#       "eks.amazonaws.com/role-arn" = aws_iam_role.cluster_autoscaler.arn
+#     }
+#     labels = local.common_tags
+#   }
+# }
+
+# resource "kubernetes_service_account" "aws_lb_controller" {
+#   metadata {
+#     name      = "aws-load-balancer-controller"
+#     namespace = "kube-system"
+#     annotations = {
+#       "eks.amazonaws.com/role-arn" = aws_iam_role.aws_lb_controller.arn
+#     }
+#     labels = local.common_tags
+#   }
+# }
+
+# # Helm Releases
+# resource "helm_release" "cluster_autoscaler" {
+#   name       = "cluster-autoscaler"
+#   repository = "https://kubernetes.github.io/autoscaler"
+#   chart      = "cluster-autoscaler"
+#   namespace  = "kube-system"
+#   version    = "9.29.0"
+
+#   values = [
+#     yamlencode({
+#       autoDiscovery = {
+#         clusterName = var.cluster_name
+#       }
+#       awsRegion = var.aws_region
+#       rbac = {
+#         serviceAccount = {
+#           create = false
+#           name   = kubernetes_service_account.cluster_autoscaler.metadata[0].name
+#         }
+#       }
+#       extraArgs = {
+#         "balance-similar-node-groups"     = true
+#         "skip-nodes-with-local-storage"   = false
+#         "expander"                        = "least-waste"
+#         "scale-down-delay-after-add"      = "10m"
+#         "scale-down-unneeded-time"        = "10m"
+#       }
+#     })
+#   ]
+
+#   depends_on = [aws_iam_role_policy_attachment.cluster_autoscaler]
+# }
+
+# resource "helm_release" "aws_lb_controller" {
 #   name       = "aws-load-balancer-controller"
 #   repository = "https://aws.github.io/eks-charts"
 #   chart      = "aws-load-balancer-controller"
 #   namespace  = "kube-system"
-#   depends_on = [
-#     aws_eks_cluster.EKSCluster
+#   version    = "1.6.0"
+
+#   values = [
+#     yamlencode({
+#       region        = var.aws_region
+#       clusterName   = var.cluster_name
+#       serviceAccount = {
+#         create = false
+#         name   = kubernetes_service_account.aws_lb_controller.metadata[0].name
+#       }
+#       image = {
+#         repository = "602401143452.dkr.ecr.${var.aws_region}.amazonaws.com/amazon/aws-load-balancer-controller"
+#       }
+#     })
 #   ]
 
-#   set {
-#     name  = "region"
-#     value = "us-west-1"
-#   }
-
-#   set {
-#     name  = "vpcId"
-#     value = aws_vpc.eks_vpc.id
-#   }
-
-#   set {
-#     name  = "image.repository"
-#     value = "602401143452.dkr.ecr.us-west-1.amazonaws.com/amazon/aws-load-balancer-controller"
-#   }
-
-#   set {
-#     name  = "serviceAccount.create"
-#     value = "true"
-#   }
-
-#   set {
-#     name  = "serviceAccount.name"
-#     value = "aws-load-balancer-controller"
-#   }
-
-#   set {
-#     name  = "clusterName"
-#     value = aws_eks_cluster.EKSCluster.name
-#   }
-  
+#   depends_on = [kubernetes_service_account.aws_lb_controller]
 # }

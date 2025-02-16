@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ecr-registry-helper-secrets
+  namespace: argocd
+stringData:
+  AWS_SECRET_ACCESS_KEY: "3MztxBG4LShHvEjY0ZGEppOziDZ4mqtdILJnTUGl"  # Replace with your AWS secret access key
+  AWS_ACCESS_KEY_ID: "AKIAZ6TO3H5LPTLSOM53"  # Replace with your AWS access key ID
+  AWS_ACCOUNT: "684206014294"  # Replace with your AWS account ID
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ecr-registry-helper-cm
+  namespace: argocd
+data:
+  AWS_REGION: "us-west-1"  # Replace with your ECR region
+  DOCKER_SECRET_NAME: "regcred"  # Replace with your desired ECR token secret name
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sa-default
+  namespace: argocd
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: argocd
+  name: role-full-access-to-secrets
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  resourceNames: ["regcred"]  # Replace with your desired ECR token secret name
+  verbs: ["delete"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["create"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: default-role-binding
+  namespace: argocd
+subjects:
+- kind: ServiceAccount
+  name: sa-default  # Replace with your service account name if different
+  namespace: argocd
+  apiGroup: ""
+roleRef:
+  kind: Role
+  name: role-full-access-to-secrets  # Replace with your role name if different
+  apiGroup: ""
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ecr-registry-helper
+  namespace: argocd
+spec:
+  schedule: "0 */10 * * *"  # Keep your desired schedule (every 10 minutes)
+  successfulJobsHistoryLimit: 3
+  suspend: false
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: sa-default
+          containers:
+          - name: ecr-registry-helper
+            image: odaniait/aws-kubectl:latest  # Make sure this image is appropriate for your needs
+            imagePullPolicy: IfNotPresent
+            envFrom:
+              - secretRef:
+                  name: ecr-registry-helper-secrets
+              - configMapRef:
+                  name: ecr-registry-helper-cm
+            command:
+              - /bin/sh
+              - -c
+              - |-
+                ECR_TOKEN="$(aws ecr get-login-password --region ${AWS_REGION})"
+                NAMESPACE_NAME=argocd
+                kubectl delete secret --ignore-not-found $DOCKER_SECRET_NAME -n $NAMESPACE_NAME
+                kubectl create secret docker-registry $DOCKER_SECRET_NAME --docker-server=https://${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com --docker-username=AWS --docker-password=${ECR_TOKEN} --namespace=$NAMESPACE_NAME
+                echo "Secret was successfully updated at $(date)"
+          restartPolicy: Never
