@@ -4,9 +4,9 @@ metadata:
   name: ecr-registry-helper-secrets
   namespace: argocd
 stringData:
-  AWS_SECRET_ACCESS_KEY: "3MztxBG4LShHvEjY0ZGEppOziDZ4mqtdILJnTUGl"  # Replace with your AWS secret access key
-  AWS_ACCESS_KEY_ID: "AKIAZ6TO3H5LPTLSOM53"  # Replace with your AWS access key ID
-  AWS_ACCOUNT: "684206014294"  # Replace with your AWS account ID
+  AWS_SECRET_ACCESS_KEY: "xxxxxxx"  # Replace with your AWS secret access key
+  AWS_ACCESS_KEY_ID: "xxxxxxx"  # Replace with your AWS access key ID
+  AWS_ACCOUNT: "xxxxxxx"  # Replace with your AWS account ID
 ---
 apiVersion: v1
 kind: ConfigMap
