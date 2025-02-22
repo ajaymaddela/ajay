@@ -1,5 +1,5 @@
-# resource "aws_config_conformance_pack" "bespin_custom" {
-#   name = "BESPIN-Custom-Conformance-Pack"
+# resource "aws_config_conformance_pack" "n_custom" {
+#   name = "-Custom-Conformance-Pack"
 
 #   input_parameter {
 #     parameter_name = ""
