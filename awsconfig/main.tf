@@ -6,9 +6,9 @@
 
 module "conformance_pack" {
   source                = "./modules/conformance-packs"
-  conformance_pack_name = "ajay-testing"
+  conformance_pack_name = "ajay-eks"
   s3_bucket_name        = "my-config-conformance-packs"
-  yaml_file_name        = "s3.yaml"
+  yaml_file_name        = "eks.yaml"
 }
 
 # s3://my-config-conformance-packs/s3.yaml

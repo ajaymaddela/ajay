@@ -215,7 +215,7 @@ resource "aws_launch_template" "eks_launch_template" {
     device_name = "/dev/xvda"
 
     ebs {
-      volume_size = 20
+      volume_size = 10
       volume_type = "gp2"
     }
   }
@@ -284,6 +284,9 @@ resource "aws_instance" "bastion_host" {
 
 
 # # After clutser creation excute below on batsion host
+# provider "aws" {
+#   region = "us-west-1"
+# }
 
 # provider "kubernetes" {
 #   host                   = data.aws_eks_cluster.cluster.endpoint

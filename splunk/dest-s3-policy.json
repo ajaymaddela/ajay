@@ -1,0 +1,23 @@
+{
+    "Version": "2012-10-17",
+    "Id": "S3-Console-Auto-Gen-Policy-1740713949941",
+    "Statement": [
+        {
+            "Sid": "S3PolicyStmt-DO-NOT-MODIFY-1740713948883",
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "logging.s3.amazonaws.com"
+            },
+            "Action": "s3:PutObject",
+            "Resource": "arn:aws:s3:::dest-bucket-s21/*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:SourceAccount": "684206014294"
+                },
+                "ArnLike": {
+                    "aws:SourceArn": "arn:aws:s3:::main-bucket-s21"
+                }
+            }
+        }
+    ]
+}
