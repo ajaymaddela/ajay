@@ -1,157 +1,265 @@
 provider "aws" {
   region = "us-west-1"
 }
-data "aws_caller_identity" "current" {}
 
-resource "aws_s3_bucket" "Bucket" {
-  bucket = "exam-bucket-nice"
+# 1. Create an S3 Bucket
+resource "aws_s3_bucket" "my_bucket" { 
+  bucket = "newsecondone-s3-ajay"
 }
 
-resource "aws_s3_bucket_policy" "BucketPolicy" {
-  bucket = aws_s3_bucket.Bucket.id
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid       = "AllowCloudTrailLogs"
-        Effect    = "Allow"
-        Principal = {
-          Service = "cloudtrail.amazonaws.com"
-        }
-        Action   = "s3:PutObject"
-        Resource = "arn:aws:s3:::${aws_s3_bucket.Bucket.id}/AWSLogs/${data.aws_caller_identity.current.account_id}/*"
-        Condition = {
-          StringEquals = {
-            "s3:x-amz-acl" = "bucket-owner-full-control"
-          }
-        }
-      },
-      {
-        Sid       = "AllowCloudTrailBucketList"
-        Effect    = "Allow"
-        Principal = {
-          Service = "cloudtrail.amazonaws.com"
-        }
-        Action   = "s3:GetBucketAcl"
-        Resource = "arn:aws:s3:::${aws_s3_bucket.Bucket.id}"
-      }
-    ]
-  })
+# 2. Enable EventBridge Notifications for the S3 Bucket
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket      = aws_s3_bucket.my_bucket.id
+  eventbridge = true
 }
 
-# Create a CloudWatch Logs group
-resource "aws_cloudwatch_log_group" "TrailLogs" {
-  name = "/aws/cloudtrail/S3DataEventsTrail"
+# 3. Create a CloudWatch Log Group for S3 Access Logs
+resource "aws_cloudwatch_log_group" "s3_access_logs" {
+  name              = "/aws/events/access-logs"
   retention_in_days = 90
 }
 
-# IAM role for CloudTrail to publish to CloudWatch Logs
-resource "aws_iam_role" "CloudTrailRole" {
-  name = "CloudTrailRole"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "cloudtrail.amazonaws.com"
-        }
-        Action = "sts:AssumeRole"
-      }
-    ]
+# 4. Create an EventBridge Rule for S3 Access Logs
+resource "aws_cloudwatch_event_rule" "s3_access_logs_rule" {
+  name        = "s3-access-logs-rule"
+  description = "Capture S3 access log events"
+  event_pattern = jsonencode({
+    "source": ["aws.s3"],
   })
 }
 
-# Policy to allow CloudTrail to publish logs to CloudWatch
-resource "aws_iam_role_policy" "CloudTrailPolicy" {
-  role = aws_iam_role.CloudTrailRole.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ]
-        Resource = "${aws_cloudwatch_log_group.TrailLogs.arn}:*"
-      }
-    ]
-  })
-}
-
-resource "aws_cloudtrail" "example" {
-  name                       = "testing-s3"
-  s3_bucket_name             = aws_s3_bucket.Bucket.id
-#   s3_key_prefix              = "cloudtrail"
-  cloud_watch_logs_group_arn = "${aws_cloudwatch_log_group.TrailLogs.arn}:*"
-  cloud_watch_logs_role_arn  = aws_iam_role.CloudTrailRole.arn
-  is_multi_region_trail      = true
-  enable_logging             = true
-
-  event_selector {
-    read_write_type = "All"
-    
-    data_resource {
-      type   = "AWS::S3::Object"
-      values = ["arn:aws:s3"]
-    }
-    include_management_events = false
-  }
-
-  # Ensure CloudWatch Log Group is created first
+# 7. EventBridge Target to Send Logs to CloudWatch Log Group
+resource "aws_cloudwatch_event_target" "s3_access_logs_target" {
+  rule      = aws_cloudwatch_event_rule.s3_access_logs_rule.name
+  arn       = aws_cloudwatch_log_group.s3_access_logs.arn
   
 }
 
+# 2. IAM Role for Firehose
+resource "aws_iam_role" "firehose_role" {
+  name = "firehose-role"
 
-# CloudWatch Event Rule to Trigger Lambda on S3 Data Events from CloudTrail
-resource "aws_cloudwatch_event_rule" "CloudTrailEventRule" {
-  name        = "CloudTrailEventRule"
-  description = "Trigger Lambda on S3 data events logged by CloudTrail"
-  event_pattern = jsonencode({
-    source = ["aws.cloudtrail"],
-    "detail-type" = ["AWS API Call via CloudTrail"],
-    detail = {
-      eventSource = ["s3.amazonaws.com"],
-      eventName   = [
-        "PutObject",
-        "GetObject",
-        "DeleteObject",
-        "ListBucket"
-      ]
-    }
+  assume_role_policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [{
+      "Effect" : "Allow",
+      "Principal" : { "Service" : "firehose.amazonaws.com" },
+      "Action" : "sts:AssumeRole"
+    }]
   })
 }
 
-
-resource "aws_cloudwatch_log_subscription_filter" "test_lambdafunction_logfilter" {
-  name            = "test_lambdafunction_logfilter"
-  role_arn        = aws_iam_role.CloudTrailRole.arn # to role to put cloudwatch logs to kinesis
-  log_group_name  = "/aws/lambda/example_lambda_name"
-  filter_pattern  = "logtype test"
-  destination_arn = aws_kinesis_firehose_delivery_stream.Firehose.arn
-  distribution    = "Random"
+# 3. IAM Policy for Kinesis Firehose (FIXED)
+resource "aws_iam_policy" "firehose_policy" {
+  name   = "firehose-policy"
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : ["s3:PutObject", "s3:GetObject", "s3:ListBucket"],
+        "Resource" : [
+          "${aws_s3_bucket.firehose_backup_bucket.arn}",
+          "${aws_s3_bucket.firehose_backup_bucket.arn}/*"
+        ]
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "logs:PutLogEvents",
+          "logs:CreateLogStream",
+          "firehose:PutRecordBatch"  # Critical addition
+        ],
+        "Resource" : "*"
+      },
+      {
+        "Effect": "Allow",
+        "Action": "lambda:InvokeFunction",
+        "Resource": "${aws_lambda_function.process_logs_lambda.arn}"
+      }
+    ]
+  })
 }
 
-# Kinesis Firehose to Splunk
-resource "aws_kinesis_firehose_delivery_stream" "Firehose" {
-  name        = "FormattedLogsToSplunk"
+resource "aws_iam_role_policy_attachment" "attach_firehose_policy" {
+  role       = aws_iam_role.firehose_role.name
+  policy_arn = aws_iam_policy.firehose_policy.arn
+}
+
+
+# 6. Create a CloudWatch Logs Subscription Filter to Kinesis Firehose
+resource "aws_cloudwatch_log_subscription_filter" "logs_to_firehose" {
+  name            = "s3-access-logs-subscription"
+  log_group_name  = aws_cloudwatch_log_group.s3_access_logs.name
+  filter_pattern  = ""
+  destination_arn = aws_kinesis_firehose_delivery_stream.firehose_stream.arn
+  role_arn = aws_iam_role.firehose_role.arn
+}
+
+# 1. Create an S3 Bucket for backup of Kinesis Firehose data
+resource "aws_s3_bucket" "firehose_backup_bucket" {
+  bucket = "firehose-backup-bucket-ajay"
+} 
+
+# Kinesis Firehose Delivery Stream with Lambda Processing
+# resource "aws_kinesis_firehose_delivery_stream" "firehose_stream" {
+#   name        = "s3-access-logs-firehose"
+#   destination = "splunk"
+
+#   splunk_configuration {
+     
+#     hec_endpoint               = "http://3.92.32.234:8088/services/collector"
+#     hec_token                  = "d618c52f-9542-4105-8524-41ea61cee070"
+#     hec_acknowledgment_timeout = 600
+#     retry_duration             = 300
+#     s3_backup_mode             = "FailedEvents"
+
+#    s3_configuration {
+#      bucket_arn = aws_s3_bucket.firehose_backup_bucket.arn
+#      role_arn = aws_iam_role.firehose_role.arn
+#    }
+#     cloudwatch_logging_options {
+#       enabled         = true
+#       log_group_name  = "/aws/kinesisfirehose/s3-access-logs"
+#       log_stream_name = "delivery"
+#     }
+#     processing_configuration {
+#       enabled = true
+
+#       processors {
+#         type = "Lambda"
+
+#         parameters {
+#           parameter_name  = "LambdaArn"
+#           parameter_value = aws_lambda_function.process_logs_lambda.arn
+#         }
+#       }
+#     }
+#   }
+
+# }
+
+# Kinesis Firehose Delivery Stream (FIXED PROCESSING CONFIG)
+resource "aws_kinesis_firehose_delivery_stream" "firehose_stream" {
+  name        = "s3-access-logs-firehose"
   destination = "splunk"
 
   splunk_configuration {
-    hec_endpoint       = "https://splunk.example.com:8088"
-    hec_token          = "YOUR_SPLUNK_HEC_TOKEN"
-    hec_acknowledgment_timeout = 300
-    retry_duration = 300
-    s3_backup_mode = "FailedEventsOnly"
+    hec_endpoint               = "https://3.92.32.234:8088/services/collector"
+    hec_token                  = "d618c52f-9542-4105-8524-41ea61cee070"
+    hec_acknowledgment_timeout = 600
+    retry_duration             = 300
+    s3_backup_mode             = "FailedEventsOnly"
+   
+
     s3_configuration {
-      role_arn = aws_iam_role.CloudTrailRole.arn
-      bucket_arn = aws_s3_bucket.Bucket.arn
-      buffering_interval = 300
-      buffering_size = 5
-      compression_format = "GZIP"
+      bucket_arn          = aws_s3_bucket.firehose_backup_bucket.arn
+      role_arn            = aws_iam_role.firehose_role.arn
+      buffering_size      = 5    # MB
+      buffering_interval  = 300  # Seconds
+      compression_format  = "GZIP"
+    }
+
+    cloudwatch_logging_options {
+      enabled         = true
+      log_group_name  = "/aws/kinesisfirehose/s3-access-logs"
+      log_stream_name = "delivery"
+    }
+
+    processing_configuration {
+      enabled = true
+
+      processors {
+        type = "Lambda"
+
+        parameters {
+          parameter_name  = "LambdaArn"
+          # Added version qualifier
+          parameter_value = "${aws_lambda_function.process_logs_lambda.arn}:$LATEST"
+        }
+
+        parameters {
+          parameter_name  = "RoleArn"
+          parameter_value = aws_iam_role.lambda_role.arn
+        }
+      }
     }
   }
+}
+
+# IAM Role for Lambda Function
+resource "aws_iam_role" "lambda_role" {
+  name = "lambda-role"
+
+  assume_role_policy = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [{
+      "Effect": "Allow",
+      "Principal": { "Service": "lambda.amazonaws.com" },
+      "Action": "sts:AssumeRole"
+    }]
+  })
+}
+
+# IAM Policy for Lambda Function
+resource "aws_iam_policy" "lambda_policy" {
+  name   = "lambda-policy"
+  policy = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [
+      # Permissions for CloudWatch Logs
+      {
+        "Effect": "Allow",
+        "Action": [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        "Resource": "*"
+      },
+      # Allow Lambda to be invoked by Firehose
+      {
+        "Effect": "Allow",
+        "Action": "lambda:InvokeFunction",
+        "Resource": "*"
+      }
+    ]
+  })
+}
+
+# Attach IAM Policy to Role
+resource "aws_iam_role_policy_attachment" "attach_lambda_policy" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = aws_iam_policy.lambda_policy.arn
+}
+
+# 5. Create Lambda Deployment Package
+data "archive_file" "lambda_zip" {
+  type        = "zip"
+  source_file = "log_transformation.py"
+  output_path = "lambda_function_payload.zip"
+}
+
+# 6. Lambda Function to Format Logs
+resource "aws_lambda_function" "process_logs_lambda" {
+  function_name = "process_logs_lambda"
+  role          = aws_iam_role.lambda_role.arn
+  handler       = "log_transformation.lambda_handler"
+  runtime       = "python3.12"
+  filename      = data.archive_file.lambda_zip.output_path
+  publish       = true
+
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+  memory_size      = 512
+  timeout          = 60
+}
+
+
+
+# Lambda Permission for Firehose
+resource "aws_lambda_permission" "allow_firehose" {
+  statement_id  = "AllowFirehoseInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.process_logs_lambda.arn
+  principal     = "firehose.amazonaws.com"
 }
