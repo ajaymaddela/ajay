@@ -74,6 +74,12 @@ resource "aws_vpc" "eks_vpc" {
   }
 }
 
+# resource "aws_default_security_group" "eks" {
+#   vpc_id = aws_vpc.eks_vpc.id
+#   ingress = [  ]
+#   egress = [  ]
+# }
+
 resource "aws_subnet" "eks_public" {
   count                   = 2
   availability_zone       = element(["us-west-1a", "us-west-1b"], count.index)
@@ -115,7 +121,7 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table_association" "public" {
-  count          = 1
+  count          = 2
   subnet_id      = aws_subnet.eks_public[count.index].id
   route_table_id = aws_route_table.public.id
 }

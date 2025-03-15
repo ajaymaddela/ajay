@@ -4,7 +4,7 @@ metadata:
   name: sa1-test-pod
   namespace: default
 spec:
-  serviceAccountName: service-account-1
+  serviceAccountName: admin-sa
   containers:
   - name: aws-cli
     image: amazon/aws-cli
