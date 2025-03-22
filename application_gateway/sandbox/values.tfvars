@@ -1,7 +1,13 @@
-resource_group     = "ajay123"
+resource_group     = "python123"
 region = "eastus"
 vnet_name         = "test"
 vnet_cidr        = "10.0.0.0/16"
 public_subnet_count  = 2
 private_subnet_count = 2
 app_gw_name = "test"
+diagnostic_name = "newonediag"
+log_analytics = "log-workspace"
+log_sku = "PerGB2018"
+storage_account_tier = "Standard"
+nsg_name = "nsgforsubnet"
+keyvault_name = "fortest306ing"

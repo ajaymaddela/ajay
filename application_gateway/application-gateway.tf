@@ -1,11 +1,11 @@
-# module "application_gateway" {
-#   source             = "./modules/application-gateway"
-#   resource_group     = module.networking.resource_group_name_output
-#   location          = module.networking.region_output
-# #   vnet_name         = module.networking.vnet_name
-#   app_gw_name      = var.app_gw_name
-#   public_subnet_id  = module.networking.public_subnets[0]
-# #   ssl_cert_data = 
-# #   ssl_cert_password = 
-#   depends_on = [ module.networking ]
-# }
+module "application_gateway" {
+  source             = "./modules/application-gateway"
+  resource_group     = module.networking.resource_group_name_output
+  region          = module.networking.region_output
+  app_gw_name      = var.app_gw_name
+  public_subnet_id  = module.networking.public_subnets[0]
+  storage_account_id = module.storage_monitoring.storage_account_id
+  diagnostic_name = var.diagnostic_name
+  keyvault_name = var.keyvault_name
+  depends_on = [ module.networking ]
+}
