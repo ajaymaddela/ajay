@@ -2,15 +2,7 @@ variable "resource_group" {
   type = string
 }
 
-variable "location" {
-  type = string
-}
-
-variable "log_analytics" {
-  type = string
-}
-
-variable "log_sku" {
+variable "region" {
   type = string
 }
 

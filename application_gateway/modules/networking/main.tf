@@ -95,3 +95,10 @@ resource "azurerm_subnet_network_security_group_association" "main" {
   subnet_id                 = each.value.id
   network_security_group_id = azurerm_network_security_group.main.id
 }
+
+## Identity
+resource "azurerm_user_assigned_identity" "user_id" {
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  name                = var.user_identity
+}

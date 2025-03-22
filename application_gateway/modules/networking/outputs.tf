@@ -9,3 +9,7 @@ output "region_output" {
 output "public_subnets" {
   value = azurerm_subnet.public[*].id
 }
+
+output "identity_ids" {
+  value = azurerm_user_assigned_identity.user_id.id
+}

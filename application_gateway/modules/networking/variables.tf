@@ -23,3 +23,7 @@ variable "nsg_name" {
   type = string
 }
 
+variable "user_identity" {
+  type = string
+}
+
