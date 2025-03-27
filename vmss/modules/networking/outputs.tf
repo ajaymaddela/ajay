@@ -6,6 +6,13 @@ output "region_output" {
   value = azurerm_resource_group.rg.location
 }
 
+output "vnet_name" {
+  value = azurerm_virtual_network.vnet.name
+}
+
+output "public_subnet_name" {
+  value = azurerm_subnet.public[*].name
+}
 output "public_subnets" {
   value = azurerm_subnet.public[*].id
 }
