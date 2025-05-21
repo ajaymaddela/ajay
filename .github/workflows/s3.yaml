@@ -1,0 +1,27 @@
+name: List S3 Buckets
+
+on:
+  push:
+    branches:
+      - main  # or your default branch
+
+permissions:
+  id-token: write       # Required to request OIDC token
+  contents: read        # To checkout the repo
+
+jobs:
+  list-buckets:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::288761760357:role/GitHubActionsOIDCRole
+          aws-region: us-east-1  # change if your buckets are in another region
+
+      - name: List S3 Buckets
+        run: aws s3 ls
