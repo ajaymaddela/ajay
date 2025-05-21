@@ -19,6 +19,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ github.ref }}  # Ensures correct branch is checked out
+          submodules: false  
 
       - name: Configure AWS Credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v2
