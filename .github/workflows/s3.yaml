@@ -1,9 +1,10 @@
 name: List S3 Buckets
 
 on:
+  workflow_dispatch:
   push:
     branches:
-      - main  # or your default branch
+      - develop  # or your default branch
 
 permissions:
   id-token: write       # Required to request OIDC token
@@ -20,7 +21,7 @@ jobs:
       - name: Configure AWS Credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::288761760357:role/GitHubActionsOIDCRole
+          role-to-assume: arn:aws:iam::288761760357:role/github
           aws-region: us-east-1  # change if your buckets are in another region
 
       - name: List S3 Buckets
