@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - develop  # or your default branch
+      - develop  # Adjust to your working branch
 
 permissions:
-  id-token: write       # Required to request OIDC token
-  contents: read        # To checkout the repo
+  id-token: write       # Required for OIDC token
+  contents: read        # Required to checkout the repo
 
 jobs:
   list-buckets:
@@ -17,12 +17,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}  # Ensures correct branch is checked out
 
       - name: Configure AWS Credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::288761760357:role/github
-          aws-region: us-east-1  # change if your buckets are in another region
+          aws-region: us-east-1
 
       - name: List S3 Buckets
         run: aws s3 ls
