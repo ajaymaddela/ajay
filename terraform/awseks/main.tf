@@ -33,10 +33,10 @@ resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
   role       = aws_iam_role.NodeGroupRole.name
 }
 
-# resource "aws_iam_role_policy_attachment" "admin" {
-#   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
-#   role = aws_iam_role.NodeGroupRole.name
-# }
+resource "aws_iam_role_policy_attachment" "admin" {
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+  role = aws_iam_role.NodeGroupRole.name
+}
 
 
 resource "aws_iam_role" "EKSClusterRole" {
@@ -148,6 +148,7 @@ resource "aws_security_group" "node_group" {
 resource "aws_eks_cluster" "EKSCluster" {
   name     = "EKSCluster-ajay"
   role_arn = aws_iam_role.EKSClusterRole.arn
+  version = "1.32"
   vpc_config {
     subnet_ids = aws_subnet.eks_private.*.id
     endpoint_private_access = true
@@ -216,7 +217,7 @@ resource "aws_launch_template" "eks_launch_template" {
   
   # image_id             = "ami-0030945a5e6d38ef4" # Update this to the correct EKS AMI
   vpc_security_group_ids = [aws_security_group.node_group.id, aws_eks_cluster.EKSCluster.vpc_config[0].cluster_security_group_id]
- image_id = "ami-0cd606c810b9a5d3a"
+ image_id = "ami-09db726706c6f5c09"
    block_device_mappings {
     device_name = "/dev/xvda"
 
@@ -640,9 +641,6 @@ resource "aws_instance" "bastion_host" {
 #       serviceAccount = {
 #         create = false
 #         name   = kubernetes_service_account.aws_lb_controller.metadata[0].name
-#       }
-#       image = {
-#         repository = "602401143452.dkr.ecr.${var.aws_region}.amazonaws.com/amazon/aws-load-balancer-controller"
 #       }
 #     })
 #   ]

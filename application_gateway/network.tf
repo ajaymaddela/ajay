@@ -1,6 +1,6 @@
 module "networking" {
   source             = "./modules/networking"
-  resource_group     = var.resource_group
+  resource_group    = var.resource_group
   region = var.region
   vnet_name         = var.vnet_name
   vnet_cidr        = var.vnet_cidr

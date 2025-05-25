@@ -84,6 +84,7 @@ spec:
     ver: "1.0"
   ports:  
     - name: ajay-po
+      port: 80
       nodePort: 31000
       protocol: "TCP"
       targetPort: 80
