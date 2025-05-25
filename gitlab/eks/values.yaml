@@ -1,0 +1,127 @@
+[ec2-user@ip-10-0-0-125 ~]$ cat values.yaml
+global:
+  edition: ee  # 🔄 Changed from 'ce' to 'ee'
+  ingress:
+    configureCertmanager: false
+    tls:
+      enabled: false
+    class: alb
+    annotations:
+      kubernetes.io/ingress.class: alb
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/group.name: gitlab-group
+      alb.ingress.kubernetes.io/healthcheck-path: /-/health
+  hosts:
+    domain: ajaymaddela.online  # 🔄 Replace with your domain
+
+gitlab:
+  webservice:
+    ingress:
+      enabled: true
+      path: /
+      annotations:
+        alb.ingress.kubernetes.io/group.name: gitlab-group
+    service:
+      type: ClusterIP
+      internalPort: 8080  # ✅ Default for webservice
+
+  registry:
+    enabled: true
+    ingress:
+      enabled: true
+      path: /registry
+      annotations:
+        alb.ingress.kubernetes.io/group.name: gitlab-group
+    service:
+      type: ClusterIP
+      internalPort: 5000  # ✅ Default for registry
+
+  gitlab-shell:
+    service:
+      type: ClusterIP
+      internalPort: 2222  # ⚠ Needed internally, no port 22 via ALB
+
+nginx-ingress:
+  enabled: false  # ❌ Disable GitLab's bundled nginx controller
+
+certmanager:
+  install: false  # ❌ Skip cert-manager if you're using your own TLS secret
+
+gitlab-runner:
+  install: false
+
+[ec2-user@ip-10-0-0-125 ~]$
+
+# configure like below
+global:
+  ingress:
+    configureCertmanager: false
+    tls:
+      enabled: false
+    class: alb
+    annotations:
+      kubernetes.io/ingress.class: alb
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+      alb.ingress.kubernetes.io/target-type: ip
+
+gitlab:
+  webservice:
+    ingress:
+      enabled: true
+      path: /
+      annotations:
+        alb.ingress.kubernetes.io/group.name: gitlab-group
+        alb.ingress.kubernetes.io/healthcheck-path: /-/health
+        alb.ingress.kubernetes.io/group.order: "1"
+    service:
+      type: ClusterIP
+      internalPort: 8080
+
+  registry:
+    enabled: true
+    ingress:
+      enabled: true
+      path: /registry
+      annotations:
+        alb.ingress.kubernetes.io/group.name: gitlab-group
+        alb.ingress.kubernetes.io/healthcheck-path: /-/healthy  # or appropriate registry healthcheck path
+        alb.ingress.kubernetes.io/group.order: "2"
+    service:
+      type: ClusterIP
+      internalPort: 5000
+
+  kas:
+    ingress:
+      enabled: true
+      path: /kas
+      annotations:
+        alb.ingress.kubernetes.io/group.name: gitlab-group
+        alb.ingress.kubernetes.io/healthcheck-path: /-/kas-health  # Replace with actual KAS health endpoint
+        alb.ingress.kubernetes.io/group.order: "3"
+    service:
+      type: ClusterIP
+      internalPort: 8150  # Default KAS port
+
+  minio:
+    ingress:
+      enabled: true
+      path: /minio
+      annotations:
+        alb.ingress.kubernetes.io/group.name: gitlab-group
+        alb.ingress.kubernetes.io/healthcheck-path: /minio/health/live  # Or minio health endpoint
+        alb.ingress.kubernetes.io/group.order: "4"
+    service:
+      type: ClusterIP
+      internalPort: 9000  # Default MinIO port
+
+nginx-ingress:
+  enabled: false
+
+certmanager:
+  install: false
+
+gitlab-runner:
+  install: false

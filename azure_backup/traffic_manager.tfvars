@@ -1,0 +1,14 @@
+traffic_manager_name          = "traffic-manager"
+traffic_routing_method        = "Performance"
+relative_dns_name             = "testing-online"
+tm_ttl                        = 30
+monitor_protocol              = "HTTP"
+monitor_port                  = 80
+monitor_path                  = "/"
+use_external_endpoint         = true
+external_endpoint_name = "vm-endpoint"
+external_endpoint_weight         = 100
+external_endpoint_always_serve   = true
+use_azure_endpoint            = false
+create_custom_domain_dns      = false
+create_dns_a_record = false
