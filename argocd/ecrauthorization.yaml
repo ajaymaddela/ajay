@@ -1,0 +1,11 @@
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: ECRAuthorizationToken
+metadata:
+  name: ecr
+  namespace: argocd
+spec:
+  region: us-east-1
+  auth:
+    jwt:
+      serviceAccountRef:
+        name: ajay

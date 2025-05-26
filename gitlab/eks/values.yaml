@@ -9,10 +9,10 @@ global:
     annotations:
       kubernetes.io/ingress.class: alb
       alb.ingress.kubernetes.io/scheme: internet-facing
-      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
       alb.ingress.kubernetes.io/target-type: ip
       alb.ingress.kubernetes.io/group.name: gitlab-group
-      alb.ingress.kubernetes.io/healthcheck-path: /-/health
+      
   hosts:
     domain: ajaymaddela.online  # 🔄 Replace with your domain
 
@@ -23,6 +23,8 @@ gitlab:
       path: /
       annotations:
         alb.ingress.kubernetes.io/group.name: gitlab-group
+        alb.ingress.kubernetes.io/healthcheck-path: /-/health
+        alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
     service:
       type: ClusterIP
       internalPort: 8080  # ✅ Default for webservice
@@ -34,6 +36,8 @@ gitlab:
       path: /registry
       annotations:
         alb.ingress.kubernetes.io/group.name: gitlab-group
+        alb.ingress.kubernetes.io/healthcheck-path: /
+        alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
     service:
       type: ClusterIP
       internalPort: 5000  # ✅ Default for registry
@@ -56,16 +60,23 @@ gitlab-runner:
 
 # configure like below
 global:
+  edition: ee
   ingress:
-    configureCertmanager: false
+    configureCertmanager: false # False, as ALB handles SSL termination with ACM
     tls:
-      enabled: false
+      enabled: false # False, as ALB handles SSL termination
     class: alb
     annotations:
-      kubernetes.io/ingress.class: alb
+      kubernetes.io/ingress.class: alb # Redundant but harmless
       alb.ingress.kubernetes.io/scheme: internet-facing
-      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
       alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/group.name: gitlab-group
+      alb.ingress.kubernetes.io/certificate-arn: "<YOUR_ACM_CERT_ARN>" # REQUIRED for HTTPS on ALB
+      alb.ingress.kubernetes.io/backend-protocol: HTTP # ALB sends HTTP to pods after SSL termination
+
+  hosts:
+    domain: ajaymaddela.online # Replace with your actual domain
 
 gitlab:
   webservice:
@@ -75,10 +86,16 @@ gitlab:
       annotations:
         alb.ingress.kubernetes.io/group.name: gitlab-group
         alb.ingress.kubernetes.io/healthcheck-path: /-/health
-        alb.ingress.kubernetes.io/group.order: "1"
+        # REMOVED: alb.ingress.kubernetes.io/listen-ports - handled by global
+        alb.ingress.kubernetes.io/backend-protocol: HTTP # Explicitly setting backend protocol for clarity
+        alb.ingress.kubernetes.io/healthcheck-interval-seconds: '30' # Increase if health checks are flaky
+        alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '10' # Increase if health checks are flaky
+        alb.ingress.kubernetes.io/healthy-threshold-count: '2'
+        alb.ingress.kubernetes.io/unhealthy-threshold-count: '2'
+        alb.ingress.kubernetes.io/success-codes: '200'
     service:
       type: ClusterIP
-      internalPort: 8080
+      internalPort: 8080 # Default for webservice
 
   registry:
     enabled: true
@@ -87,41 +104,40 @@ gitlab:
       path: /registry
       annotations:
         alb.ingress.kubernetes.io/group.name: gitlab-group
-        alb.ingress.kubernetes.io/healthcheck-path: /-/healthy  # or appropriate registry healthcheck path
-        alb.ingress.kubernetes.io/group.order: "2"
+        alb.ingress.kubernetes.io/healthcheck-path: /v2/ # More robust for registry health checks
+        # REMOVED: alb.ingress.kubernetes.io/listen-ports - handled by global
+        alb.ingress.kubernetes.io/backend-protocol: HTTP # Explicitly setting backend protocol for clarity
+        alb.ingress.kubernetes.io/healthcheck-interval-seconds: '30'
+        alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '10'
+        alb.ingress.kubernetes.io/healthy-threshold-count: '2'
+        alb.ingress.kubernetes.io/unhealthy-threshold-count: '2'
+        alb.ingress.kubernetes.io/success-codes: '200'
     service:
       type: ClusterIP
-      internalPort: 5000
+      internalPort: 5000 # Default for registry
 
   kas:
+    enabled: true # Ensure KAS is enabled
     ingress:
       enabled: true
-      path: /kas
+      # KAS often needs a specific path or host for its ingress rule
+      # The GitLab chart typically handles this, but if you need a dedicated host:
+      # hostname: kas.ajaymaddela.online
       annotations:
         alb.ingress.kubernetes.io/group.name: gitlab-group
-        alb.ingress.kubernetes.io/healthcheck-path: /-/kas-health  # Replace with actual KAS health endpoint
-        alb.ingress.kubernetes.io/group.order: "3"
+        alb.ingress.kubernetes.io/healthcheck-path: /-/health # KAS health check path
+        alb.ingress.kubernetes.io/healthcheck-port: '8154' # Crucial: KAS metrics/health endpoint is often on 8154
+        alb.ingress.kubernetes.io/backend-protocol: HTTPS # KAS uses gRPC, often over TLS (HTTPS) from ALB
+        # Increase health check thresholds/intervals if KAS is slow to start
+        alb.ingress.kubernetes.io/healthcheck-interval-seconds: '30'
+        alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '10'
+        alb.ingress.kubernetes.io/healthy-threshold-count: '2'
+        alb.ingress.kubernetes.io/unhealthy-threshold-count: '2'
+        alb.ingress.kubernetes.io/success-codes: '200'
     service:
       type: ClusterIP
-      internalPort: 8150  # Default KAS port
-
-  minio:
-    ingress:
-      enabled: true
-      path: /minio
-      annotations:
-        alb.ingress.kubernetes.io/group.name: gitlab-group
-        alb.ingress.kubernetes.io/healthcheck-path: /minio/health/live  # Or minio health endpoint
-        alb.ingress.kubernetes.io/group.order: "4"
-    service:
-      type: ClusterIP
-      internalPort: 9000  # Default MinIO port
-
-nginx-ingress:
-  enabled: false
-
-certmanager:
-  install: false
-
-gitlab-runner:
-  install: false
+      # These are default KAS service ports, ensure they match what the KAS pod exposes
+      kasExternalPort: 8150
+      kasInternalPort: 8150
+      metricsExternalPort: 8154
+      metricsInternalPort: 8154
