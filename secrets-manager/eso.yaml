@@ -1,0 +1,87 @@
+---
+apiVersion: external-secrets.io/v1beta1
+kind: SecretStore
+metadata:
+  name: aws-secrets
+  namespace: default
+spec:
+  provider:
+    aws:
+      service: SecretsManager
+      region: ap-south-1    # Change to your region
+      auth:
+        jwt:
+          serviceAccountRef:
+            name: external-secrets
+            namespace: external-secrets
+
+
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: my-app-secret
+  namespace: default
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: aws-secrets
+    kind: SecretStore
+  target:
+    name: my-app-k8s-secret
+    creationPolicy: Owner
+  data:
+    - secretKey: DB_PASSWORD
+      remoteRef:
+        key: prod/db-credentials
+        property: password
+    - secretKey: DB_USERNAME
+      remoteRef:
+        key: prod/db-credentials
+        property: username
+
+
+
+
+#### cluster secret store
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ClusterSecretStore
+metadata:
+  name: aws-cluster-secrets
+spec:
+  provider:
+    aws:
+      service: SecretsManager
+      region: ap-south-1  # 🔁 Replace with your AWS region
+      auth:
+        jwt:
+          serviceAccountRef:
+            name: external-secrets     # Service account created for ESO
+            namespace: external-secrets
+
+
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: app1-db-secrets
+  namespace: app1-namespace   # 👈 Any namespace can use this
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: aws-cluster-secrets
+    kind: ClusterSecretStore
+  target:
+    name: db-credentials
+    creationPolicy: Owner
+  data:
+    - secretKey: username
+      remoteRef:
+        key: prod/db-credentials
+        property: username
+    - secretKey: password
+      remoteRef:
+        key: prod/db-credentials
+        property: password
+
